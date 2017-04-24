@@ -32,7 +32,7 @@ public:
 	/// <param name="groupToRemove">Pointer of the group to be removed.</param>
 	/// <param name="groups">Pointer of the list of groups from we will remove the groups.</param>
 	/// <returns>True if the group was removed.</returns>
-	inline const bool removeGroup(unitGroup_t* groupToRemove, UnitGroupVector* groups)
+	inline bool removeGroup(unitGroup_t* groupToRemove, UnitGroupVector* groups)
 	{
 		auto groupFound = std::find(groups->begin(), groups->end(), groupToRemove);
 		if (groupFound != groups->end()) {
@@ -48,7 +48,7 @@ public:
 	/// <summary>Remove multiple goups from a list</summary>
 	/// <param name="groupsToRemove">List of pointer of groups to be removed.</param>
 	/// <param name="groups">Pointer of the list of groups from we will remove the groups.</param>
-	inline const void removeAllGroups(UnitGroupVector* groupsToRemove, UnitGroupVector* groups)
+	inline void removeAllGroups(UnitGroupVector* groupsToRemove, UnitGroupVector* groups)
 	{
 		for (const auto& groupToDelete : *groupsToRemove) removeGroup(groupToDelete, groups);
 		groupsToRemove->clear();
@@ -58,7 +58,7 @@ public:
 	/// (not military units at the end)</summary>
 	/// <param name="groupsToRemove">List of pointer of groups to be removed.</param>
 	/// <param name="groups">Pointer of the list of groups from we will remove the groups.</param>
-	inline const void removeAllMilitaryGroups(UnitGroupVector* groupsToRemove, UnitGroupVector* groups);
+	inline void removeAllMilitaryGroups(UnitGroupVector* groupsToRemove, UnitGroupVector* groups);
 	
 
 	/// <summary>Check if the combat can be simulated</summary>
@@ -68,7 +68,7 @@ public:
 	bool canSimulate(GameState::army_t* armyInCombat, GameState::army_t* army);
 
 	/// Remove Harmless indestructible units
-	inline const void removeHarmlessIndestructibleUnits(GameState::army_t* armyInCombat)
+	inline void removeHarmlessIndestructibleUnits(GameState::army_t* armyInCombat)
 	{
 		bool friendlyCanAttackGround = false;
 		bool friendlyCanAttackAir = false;
@@ -134,6 +134,6 @@ public:
 	comp_f _comparator1;
 	comp_f _comparator2;
 
-	inline const void sortGroups(UnitGroupVector* groups, comp_f comparator, UnitGroupVector* attackers);
+	inline void sortGroups(UnitGroupVector* groups, comp_f comparator, UnitGroupVector* attackers);
 	
 };

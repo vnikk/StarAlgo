@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "CombatSimulator.h"
 
-inline const void CombatSimulator::removeAllMilitaryGroups(UnitGroupVector* groupsToRemove, UnitGroupVector* groups)
+inline void CombatSimulator::removeAllMilitaryGroups(UnitGroupVector* groupsToRemove, UnitGroupVector* groups)
 {
 	for (const auto& groupToDelete : *groupsToRemove) {
 		if (isPassiveBuilding(groupToDelete)) break;
@@ -46,7 +46,7 @@ CombatSimulator::GroupDiversity CombatSimulator::getGroupDiversity(UnitGroupVect
 	return GroupDiversity::GROUND;
 }
 
-inline const void CombatSimulator::sortGroups(UnitGroupVector* groups, comp_f comparator, UnitGroupVector* attackers)
+inline void CombatSimulator::sortGroups(UnitGroupVector* groups, comp_f comparator, UnitGroupVector* attackers)
 {
 	if (groups->size() <= 1) return; // nothing to sort
 	// sort by default (buildings and non-attacking units at the end)
