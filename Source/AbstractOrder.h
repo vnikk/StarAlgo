@@ -44,8 +44,9 @@ struct playerAction_t {
 	playerAction_t(choice_t order, int orderSelected)
 		: pos(order.pos), action(order.actions[orderSelected]), unitTypeId(order.unitTypeId), regionId(order.regionId), isFriendly(order.isFriendly) {}
 #else
-//	playerAction_t(choice_t order, int orderSelected)
-//		: pos(order.pos), action(order.actions[orderSelected]) {}
+	playerAction_t(choice_t order, int orderSelected)
+	: pos(order.pos), action(order.actions[orderSelected])
+	{}
 #endif
 };
 typedef std::vector<playerAction_t> playerActions_t;

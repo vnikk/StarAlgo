@@ -13,8 +13,8 @@ typedef std::function<bool(const unitGroup_t* a, const unitGroup_t* b)> comp_f;
 class CombatSimulator
 {
 public:
-	virtual ~CombatSimulator() {}                // Native support for polymorphic destruction
 	virtual CombatSimulator* clone() const = 0;  // Virtual constructor (copying) 
+	virtual ~CombatSimulator() {}
 
 	/// <summary>Retrieves the expected duration of the combat.</summary>
 	/// <param name="army">Abstraction of enemy and self units.</param>
@@ -58,13 +58,8 @@ public:
 	/// (not military units at the end)</summary>
 	/// <param name="groupsToRemove">List of pointer of groups to be removed.</param>
 	/// <param name="groups">Pointer of the list of groups from we will remove the groups.</param>
-	inline const void removeAllMilitaryGroups(UnitGroupVector* groupsToRemove, UnitGroupVector* groups)
-	{
-		for (const auto& groupToDelete : *groupsToRemove) {
-			if (isPassiveBuilding(groupToDelete)) break;
-			removeGroup(groupToDelete, groups);
-		}
-	}
+	inline const void removeAllMilitaryGroups(UnitGroupVector* groupsToRemove, UnitGroupVector* groups);
+	
 
 	/// <summary>Check if the combat can be simulated</summary>
 	/// <param name="armyInCombat">List of units involved in the combat.</param>
@@ -139,30 +134,6 @@ public:
 	comp_f _comparator1;
 	comp_f _comparator2;
 
-	inline const void sortGroups(UnitGroupVector* groups, comp_f comparator, UnitGroupVector* attackers)
-	{
-		if (groups->size() <= 1) return; // nothing to sort
-		// sort by default (buildings and non-attacking units at the end)
-		std::sort(groups->begin(), groups->end(), sortByBuilding);
-
-		// find first passive building and sort until it
-		auto passiveBuilding = std::find_if(groups->begin(), groups->end(), isPassiveBuilding);
-
-		if (comparator == nullptr) {
-			// by default use the learned priorities
-			GroupDiversity groupDiversity = getGroupDiversity(attackers);
-			switch (groupDiversity) {
-			case AIR:	 std::sort(groups->begin(), passiveBuilding, sortByTypeAir); break;
-			case GROUND: std::sort(groups->begin(), passiveBuilding, sortByTypeGround); break;
-			case BOTH:	 std::sort(groups->begin(), passiveBuilding, sortByTypeBoth); break;
-			}
-			// by default random
-// 			std::random_device combatRD;
-// 			std::mt19937 combatG(combatRD());
-// 			std::shuffle(groups->begin(), passiveBuilding, combatG);
-		} else {
-			std::sort(groups->begin(), passiveBuilding, comparator);
-		}
-
-	}
+	inline const void sortGroups(UnitGroupVector* groups, comp_f comparator, UnitGroupVector* attackers);
+	
 };

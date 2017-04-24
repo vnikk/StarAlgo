@@ -21,8 +21,9 @@ static enum probName {
 class ActionGenerator
 {
 public:
-	GameState* _gs;
+	const GameState* _gs;
 	double _size;
+	// TODO change to _isFriendly
 	bool _player; // true==friendly, false==enemy
 	playerActions_t _lastAction;
 
@@ -43,6 +44,7 @@ public:
     double getHighLevelEnemyActions();
     double getLowLevelFriendlyActions();
     double getLowLevelEnemyActions();
+	// TODO why sparcraft? is it from there?
     double getSparcraftFriendlyActions();
     double getSparcraftEnemyActions();
 	double getLowLevelActions(BWAPI::Unitset units);
@@ -69,5 +71,6 @@ private:
 	double getActionProbability(action_t action, std::map<probName, uint8_t> possibleActions, unitGroup_t* currentGroup);
 	std::map<probName, uint8_t> getAllPosibleActions(std::vector<action_t> actions, unitGroup_t* currentGroup);
 	double getProbabilityGivenState(probName action, std::map<probName, uint8_t> possibleActions);
+	bool isMovingTowardsBase(const std::vector<unitGroup_t*>* groupList, uint8_t currentRegion, uint8_t targetRegion);
 	std::string getMoveFeatures(uint8_t regionID, unitGroup_t* currentGroup);
 };

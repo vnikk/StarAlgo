@@ -13,9 +13,6 @@
     <ClInclude Include="Source\GameState.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\StarAlgo.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\targetver.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -28,15 +25,24 @@
     <ClInclude Include="Source\ActionGenerator.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\ActionProbabilities.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CombatSimulator.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\TargetSorting.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MCTSCD.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\EvaluationFunction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\GameState.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\StarAlgo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\stdafx.cpp">
@@ -48,5 +54,17 @@
     <ClCompile Include="Source\ActionGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\CombatSimulator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\TargetSorting.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MCTSCD.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram2.cd" />
   </ItemGroup>
 </Project>

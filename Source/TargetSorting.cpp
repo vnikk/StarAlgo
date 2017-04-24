@@ -1,12 +1,6 @@
 #include "stdafx.h"
 #include "TargetSorting.h"
 
-bool isPassiveBuilding(const unitGroup_t* group)
-{
-	BWAPI::UnitType gType(group->unitTypeId);
-	return (gType.isBuilding() && !gType.canAttack() && gType != BWAPI::UnitTypes::Terran_Bunker);
-}
-
 sortByBuildingClass sortByBuilding;
 sortByScoreClass sortByScore;
 sortByDpsClass sortByDps;

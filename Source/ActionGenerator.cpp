@@ -4,7 +4,7 @@
 
 #include "ActionGenerator.h"
 #include "AbstractOrder.h"
-//#include "ActionProbabilities.h"
+#include "ActionProbabilities.h"
 
 using namespace BWAPI;
 
@@ -17,7 +17,6 @@ ActionGenerator::ActionGenerator(const GameState* gs, bool player)
 	_size(1),
 	_player(player)
 {
-	int x;
 	// set myUnitsList and enemyUnitList depends on the player
 	if (_player) {
 		_myUnitsList = &_gs->_army.friendly;
@@ -87,21 +86,21 @@ std::vector<action_t> ActionGenerator::getUnitActions(unitGroup_t* unit)
 	// --------------------------------
 	// get neighbors from a region or chokepoint
     if (unitType.canMove()) {
-		BWTA::Region* region = _gs->_regionFromID[unit->regionId]; // TODO use find
-	    if (region != NULL) {
+		auto region = _gs->_regionFromID.find(unit->regionId);
+	    if (region != _gs->_regionFromID.end()) {
             if (!_gs->_onlyRegions) {
-				for (const auto& c : region->getChokepoints()) {
-					possibleActions.push_back(action_t(abstractOrder::Move, _gs->_chokePointID[c]));
+				for (const auto& c : region->second->getChokepoints()) {
+					possibleActions.push_back(action_t(abstractOrder::Move, _gs->_chokePointID.at(c)));
 				}
             } else {
 				std::vector<int> duplicates; // sorted vector to lookup duplicate regionID
 				std::vector<int>::iterator i;
 				int regionIDtoAdd;
-				for (const auto& c : region->getChokepoints()) {
-                    const std::pair<BWTA::Region*,BWTA::Region*> regions = c->getRegions();
-					regionIDtoAdd = _gs->_regionID[regions.first];
-					if (_gs->_regionID[regions.first] == unit->regionId) {
-						regionIDtoAdd = _gs->_regionID[regions.second];
+				for (const auto& c : region->second->getChokepoints()) {
+                    const auto regions = c->getRegions();
+					regionIDtoAdd = _gs->_regionID.at(regions.first);
+					if (_gs->_regionID.at(regions.first) == unit->regionId) {
+						regionIDtoAdd = _gs->_regionID.at(regions.second);
                     }
 					i = std::lower_bound(duplicates.begin(), duplicates.end(), regionIDtoAdd);
 					if (i == duplicates.end() || regionIDtoAdd < *i) {
@@ -112,11 +111,11 @@ std::vector<action_t> ActionGenerator::getUnitActions(unitGroup_t* unit)
 		        }
             }
 	    } else {
-			BWTA::Chokepoint* cp = _gs->_chokePointFromID[unit->regionId];
-		    if (cp != NULL) {
-			    const std::pair<BWTA::Region*,BWTA::Region*> regions = cp->getRegions();
-				possibleActions.push_back(action_t(abstractOrder::Move, _gs->_regionID[regions.first]));
-				possibleActions.push_back(action_t(abstractOrder::Move, _gs->_regionID[regions.second]));
+			auto cp = _gs->_chokePointFromID.find(unit->regionId);
+		    if (cp != _gs->_chokePointFromID.end()) {
+			    const auto regions = cp->second->getRegions();
+				possibleActions.push_back(action_t(abstractOrder::Move, _gs->_regionID.at(regions.first)));
+				possibleActions.push_back(action_t(abstractOrder::Move, _gs->_regionID.at(regions.second)));
 		    }
 	    }
     }
@@ -284,7 +283,7 @@ bool isBase(uint8_t typeID)
 		|| typeID == BWAPI::UnitTypes::Zerg_Lair);
 }
 
-bool isMovingTowardsBase(const std::vector<unitGroup_t*>* groupList, uint8_t currentRegion, uint8_t targetRegion)
+bool ActionGenerator::isMovingTowardsBase(const std::vector<unitGroup_t*>* groupList, uint8_t currentRegion, uint8_t targetRegion)
 {
 	int minDistToBaseActualReg = std::numeric_limits<int>::max();
 	int minDistToBaseTargetReg = std::numeric_limits<int>::max();

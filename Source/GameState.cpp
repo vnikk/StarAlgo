@@ -165,7 +165,7 @@ GameState::GameState(const GameState &other)
 	:_buildingTypes(other._buildingTypes),
 	_regionsInCombat(other._regionsInCombat),
 	_time(other._time),
-	cs(other.cs->clone()),
+	cs(/*other.cs->clone()*/nullptr),
 	friendlySiegeTankResearched(other.friendlySiegeTankResearched),
 	enemySiegeTankResearched(other.enemySiegeTankResearched)
 {

@@ -2,6 +2,7 @@
 
 #define NOMINMAX
 
+#include "AbstractGroup.h"
 #include "BWAPI.h"
 #include "targetver.h"
 #include <windows.h>
@@ -27,11 +28,12 @@ extern unsigned int combatsSimulated;
 class UnitInfoStatic; // move to TargetSorting.h?
 class InformationManager; // move to ActionGenerator.cpp?
 //class BuildManager; // move to InformationManager.cpp?
-extern UnitInfoStatic* unitStatic;
-extern InformationManager* informationManager;
+extern UnitInfoStatic* unitStatic; extern InformationManager* informationManager;
 //extern BuildManager* buildManager;
 
 bool isAggressiveSpellcaster(BWAPI::UnitType unitType);
+
+bool isPassiveBuilding(const unitGroup_t* group);
 
 bool canAttackAirUnits(BWAPI::UnitType unitType);
 

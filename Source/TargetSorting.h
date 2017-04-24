@@ -5,9 +5,6 @@
 #include "AbstractGroup.h"
 #include "UnitInfoStatic.h"
 
-// Sort units that cannot attack to the end
-bool isPassiveBuilding(const unitGroup_t* group);
-
 struct sortByBuildingClass {
 	bool operator() (const unitGroup_t* a, const unitGroup_t* b) {
 		return isPassiveBuilding(a) < isPassiveBuilding(b);

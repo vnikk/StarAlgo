@@ -22,11 +22,11 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -39,6 +39,9 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(ProjectDir)bin\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(ProjectDir)bin\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -62,6 +65,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(BWTA_DIR)/include/;$(BWAPI_DIR)/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -71,15 +75,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Source\ActionGenerator.h" />
+    <ClInclude Include="Source\ActionProbabilities.h" />
+    <ClInclude Include="Source\CombatSimulator.h" />
     <ClInclude Include="Source\EvaluationFunction.h" />
     <ClInclude Include="Source\GameState.h" />
     <ClInclude Include="Source\StarAlgoExtra.h" />
     <ClInclude Include="Source\stdafx.h" />
-    <ClInclude Include="Source\StarAlgo.h" />
+    <ClInclude Include="Source\MCTSCD.h" />
+    <ClInclude Include="Source\TargetSorting.h" />
     <ClInclude Include="Source\targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\ActionGenerator.cpp" />
+    <ClCompile Include="Source\CombatSimulator.cpp" />
     <ClCompile Include="Source\EvaluationFunction.cpp" />
     <ClCompile Include="Source\GameState.cpp" />
     <ClCompile Include="Source\StarAlgoExtra.cpp" />
@@ -87,7 +95,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Source\StarAlgo.cpp" />
+    <ClCompile Include="Source\MCTSCD.cpp" />
+    <ClCompile Include="Source\TargetSorting.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram2.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

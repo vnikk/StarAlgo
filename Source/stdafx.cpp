@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <winbase.h>
 
+//TODO second definition?
 #define WINAPI_PARTITION_DESKTOP 1
 
 static std::mt19937 initGenerator() {
@@ -24,6 +25,12 @@ bool isAggressiveSpellcaster(BWAPI::UnitType unitType)
 		unitType != BWAPI::UnitTypes::Terran_Science_Vessel &&
 		unitType != BWAPI::UnitTypes::Protoss_Dark_Archon && // although, Feedback spell damage shielded units
 		unitType != BWAPI::UnitTypes::Zerg_Queen; // although, Spawn Broodlings spell insta-kill a unit
+}
+
+bool isPassiveBuilding(const unitGroup_t* group)
+{
+	BWAPI::UnitType gType(group->unitTypeId);
+	return (gType.isBuilding() && !gType.canAttack() && gType != BWAPI::UnitTypes::Terran_Bunker);
 }
 
 bool canAttackAirUnits(BWAPI::UnitType unitType)
