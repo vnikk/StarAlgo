@@ -1,9 +1,9 @@
 #pragma once
 
-#include <algorithm>
-
 #include "AbstractGroup.h"
 #include "UnitInfoStatic.h"
+
+#include <algorithm>
 
 struct sortByBuildingClass {
 	bool operator() (const unitGroup_t* a, const unitGroup_t* b) {

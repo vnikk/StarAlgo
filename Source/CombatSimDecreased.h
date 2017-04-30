@@ -17,39 +17,39 @@
 class CombatSimDecreased : public CombatSimulator
 {
 public:
-	CombatSimDecreased(std::vector<std::vector<double> >* unitTypeDPF, std::vector<DPF_t>* _maxDPF, comp_f comparator1 = nullptr, comp_f comparator2 = nullptr);
-	virtual ~CombatSimDecreased() {}
-	CombatSimDecreased * clone() const { return new CombatSimDecreased(*this); } // Virtual constructor (copying) 
+    CombatSimDecreased(std::vector<std::vector<double> >* unitTypeDPF, std::vector<DPF_t>* _maxDPF, comp_f comparator1 = nullptr, comp_f comparator2 = nullptr);
+    virtual ~CombatSimDecreased() {}
+    CombatSimDecreased * clone() const { return new CombatSimDecreased(*this); } // Virtual constructor (copying) 
 
-	int getCombatLength(GameState::army_t* army);
-	void simulateCombat(GameState::army_t* armyInCombat, GameState::army_t* army, int frames = 0);
+    int getCombatLength(GameState::army_t* army);
+    void simulateCombat(GameState::army_t* armyInCombat, GameState::army_t* army, int frames = 0);
 
 private:
-	struct combatStats_t {
-		double airDPF; // DPF = Damage Per Frame
-		double groundDPF;
-		double bothAirDPF;
-		double bothGroundDPF;
-		double airHP;
-		double groundHP;
-		double airHPextra;
-		double groundHPextra;
-		combatStats_t() :airDPF(0.0), groundDPF(0.0), bothAirDPF(0.0), bothGroundDPF(0.0),
-			airHP(0.0), groundHP(0.0), airHPextra(0.0), groundHPextra(0.0){}
-	};
+    struct combatStats_t {
+        double airDPF; // DPF = Damage Per Frame
+        double groundDPF;
+        double bothAirDPF;
+        double bothGroundDPF;
+        double airHP;
+        double groundHP;
+        double airHPextra;
+        double groundHPextra;
+        combatStats_t() :airDPF(0.0), groundDPF(0.0), bothAirDPF(0.0), bothGroundDPF(0.0),
+            airHP(0.0), groundHP(0.0), airHPextra(0.0), groundHPextra(0.0){}
+    };
 
-	std::vector<std::vector<double> >* _unitTypeDPF;
-	std::vector<DPF_t>* _maxDPF;
+    std::vector<std::vector<double> >* _unitTypeDPF;
+    std::vector<DPF_t>* _maxDPF;
 
-	int _timeToKillEnemy;
-	int _timeToKillFriend;
-	int _extraTimeToKillEnemy;
-	int _extraTimeToKillFriend;
+    int _timeToKillEnemy;
+    int _timeToKillFriend;
+    int _extraTimeToKillEnemy;
+    int _extraTimeToKillFriend;
 
-	void getCombatLength(combatStats_t friendStats, combatStats_t enemyStats);
-	void getExtraCombatLength(combatStats_t friendStats, combatStats_t enemyStats);
-	combatStats_t getCombatStats(const UnitGroupVector &army);
+    void getCombatLength(combatStats_t friendStats, combatStats_t enemyStats);
+    void getExtraCombatLength(combatStats_t friendStats, combatStats_t enemyStats);
+    combatStats_t getCombatStats(const UnitGroupVector &army);
 
-	double getTimeToKillUnit(const UnitGroupVector &unitsInCombat, uint8_t enemyType, float enemyHP, double &DPF);
-	bool killUnit(UnitGroupVector::iterator &unitToKill, UnitGroupVector &unitsInCombat, UnitGroupVector* unitsList, float &HPsurvivor, float &HPkilled, double timeToKill, double DPF);
+    double getTimeToKillUnit(const UnitGroupVector &unitsInCombat, uint8_t enemyType, float enemyHP, double &DPF);
+    bool killUnit(UnitGroupVector::iterator &unitToKill, UnitGroupVector &unitsInCombat, UnitGroupVector* unitsList, float &HPsurvivor, float &HPkilled, double timeToKill, double DPF);
 };
