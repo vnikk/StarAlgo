@@ -577,6 +577,7 @@ std::string GameState::toString() const
     return tmp.str();
 }
 
+// checks ending frame of the current game state, supervise the regions in combat
 void GameState::execute(const playerActions_t &playerActions, bool player)
 {
     ordersSanityCheck();
@@ -588,7 +589,7 @@ void GameState::execute(const playerActions_t &playerActions, bool player)
     uint8_t targetRegionId;
     unitGroup_t* unitGroup;
     int timeToMove;
-    std::set<int> computeCombatLenghtIn; // set because we don't want duplicates
+    std::set<int> computeCombatLengthIn; // set because we don't want duplicates
 
     for (size_t i = 0; i < playerActions.size(); ++i) {
         orderId = playerActions[i].action.orderID;
@@ -626,7 +627,7 @@ void GameState::execute(const playerActions_t &playerActions, bool player)
         case abstractOrder::Attack:
             // keep track of the regions with units in attack state
             _regionsInCombat.insert(unitGroup->regionId);
-            computeCombatLenghtIn.insert(unitGroup->regionId);
+            computeCombatLengthIn.insert(unitGroup->regionId);
             break;
         case abstractOrder::Nothing: // for buildings
             unitGroup->endFrame = _time + NOTHING_TIME;
@@ -639,7 +640,7 @@ void GameState::execute(const playerActions_t &playerActions, bool player)
     }
 
     // if we have new attack actions, compute the combat length
-    for (const auto& regionId : computeCombatLenghtIn) calculateCombatLengthAtRegion(regionId);
+    for (const auto& regionId : computeCombatLengthIn) calculateCombatLengthAtRegion(regionId);
 
 #if _DEBUG
     ordersSanityCheck();
@@ -712,6 +713,7 @@ void GameState::setAttackOrderToIdle(unitGroupVector &myArmy)
     }
 }
 
+// has time to execute action
 bool GameState::canExecuteAnyAction(bool player) const
 {
     const unitGroupVector *armySide;
@@ -960,6 +962,7 @@ bool GameState::hasOnlyBuildings(unitGroupVector armySide) const {
     return true;
 }
 
+// copies current game state and advances it to the next state
 GameState GameState::cloneIssue(playerActions_t playerActions, bool player) const {
     GameState nextGameState(*this);
     nextGameState.execute(playerActions, player);

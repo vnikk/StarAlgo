@@ -6,7 +6,7 @@
 #include "GameState.h"
 #include "ActionGenerator.h"
 #include "EvaluationFunction.h"
-#include "../../../../../g/BWAPI/include/BWAPI.h"
+#include <BWAPI.h>
 
 // TODO
 // #define DEPTH_STATS

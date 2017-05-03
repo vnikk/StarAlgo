@@ -74,6 +74,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Minimax.h" />
     <ClInclude Include="Source\ActionGenerator.h" />
     <ClInclude Include="Source\ActionProbabilities.h" />
     <ClInclude Include="Source\CombatSimulator.h" />

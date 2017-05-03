@@ -37,6 +37,9 @@
     <ClInclude Include="Source\MCTSCD.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Minimax.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\EvaluationFunction.cpp">

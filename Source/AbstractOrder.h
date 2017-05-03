@@ -8,7 +8,11 @@
 struct action_t {
     uint8_t orderID;
     uint8_t targetRegion; // if needed
-    action_t(uint8_t _orderID, uint8_t _targetRegion = 0) : orderID(_orderID), targetRegion(_targetRegion) {}
+
+    action_t(uint8_t _orderID, uint8_t _targetRegion = 0)
+    : orderID(_orderID), targetRegion(_targetRegion)
+    {}
+
     friend bool operator== (const action_t& lhs, const action_t& rhs) {
         return (lhs.orderID == rhs.orderID && lhs.targetRegion == rhs.targetRegion);
     };
@@ -24,16 +28,22 @@ struct choice_t {
     choice_t(unsigned short _pos, std::vector<action_t> _actions, uint8_t _unitTypeId, uint8_t _regionId, bool _isFriendly)
         : pos(_pos), actions(_actions), unitTypeId(_unitTypeId), regionId(_regionId), isFriendly(_isFriendly) {}
 #else
-    choice_t(unsigned short _pos, std::vector<action_t> _actions) : pos(_pos), actions(_actions) {}
+    choice_t(unsigned short _pos, std::vector<action_t> _actions)
+    : pos(_pos), actions(_actions)
+    {}
 #endif
 };
+
 typedef std::vector<choice_t> choices_t;
 
 struct playerAction_t {
     unsigned short pos;    // position in the unit vector of the game state
     action_t action;
 
-    playerAction_t() : pos(0), action(action_t(0, 0)) {}
+    playerAction_t()
+    : pos(0), action(action_t(0, 0))
+    {}
+
     friend bool operator== (const playerAction_t& lhs, const playerAction_t& rhs) {
         return (lhs.pos == rhs.pos && lhs.action == rhs.action);
     };
@@ -60,6 +70,7 @@ namespace abstractOrder {
         "Unknown", "Nothing", "Idle", "Gas", "Mineral", "Move", "Attack", "Heal"
     };
 
+    //TODO optimize: if strict order - use switch
     static order getOrder(std::string orderName) {
         if (orderName.find("Nothing") != std::string::npos) return abstractOrder::Nothing;
         else if (orderName.find("Idle") != std::string::npos) return abstractOrder::Idle;

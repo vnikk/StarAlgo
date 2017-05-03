@@ -4,7 +4,7 @@
 #include <map>
 #include <numeric>
 
-#include "../../../../../g/BWAPI/include/BWAPI.h"
+#include <BWAPI.h>
 
 #include "AbstractOrder.h"
 #include "GameState.h"

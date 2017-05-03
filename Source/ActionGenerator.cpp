@@ -565,6 +565,7 @@ double ActionGenerator::getSparcraftEnemyActions()
     return getSparcraftActions(Broodwar->enemy()->getUnits());
 }
 
+// TODO int return type
 double ActionGenerator::getSparcraftActions(BWAPI::Unitset units)
 {
     double size = 1;

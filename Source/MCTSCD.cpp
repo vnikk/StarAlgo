@@ -67,16 +67,16 @@ playerActions_t MCTSCD::startSearch(int cutOffTime)
     // if root node only has one possible action, return it
     ActionGenerator moveGenerator(_rootGameState, true); // by default MAX player (friendly)
     if (moveGenerator._size == 1) {
-        //         return moveGenerator.getNextAction();
+        tree->deleteAllChildren(); // free memory
         return moveGenerator.getUniqueRandomAction();
     }
 
     // while withing computational budget
-    for (int i = 0; i<_maxSimulations; ++i) {
+    for (int i = 0; i < _maxSimulations; ++i) {
         // tree policy, get best child
         GameNode* leaf = tree->bestChild(_maxDepth);
 
-        if (leaf) {
+        if (leaf) { // always true
             // default policy, run simulation
             //             LOG("SIMULATION");
             GameState gs2 = leaf->gs; // copy the game state to run simulation
@@ -84,10 +84,8 @@ playerActions_t MCTSCD::startSearch(int cutOffTime)
 
             // use game frame time as a reduction factor
             int time = gs2._time - _rootGameState->_time;
-            double evaluation = _ef->evaluate(gs2)*pow(0.999, time / 10.0);
-            //             double evaluation = _ef->evaluate(gs2);
-
-            // backup
+            double evaluation = _ef->evaluate(gs2) * pow(0.999, time / 10.0);
+            // update all parents' values
             while (leaf != nullptr) {
                 leaf->totalEvaluation += evaluation;
                 leaf->totalVisits++;
@@ -96,12 +94,12 @@ playerActions_t MCTSCD::startSearch(int cutOffTime)
         }
     }
 
-    // return best child
+    // get best child
     int mostVisitedIdx = -1;
     GameNode* mostVisited = nullptr;
-    for (unsigned int i = 0; i<tree->children.size(); ++i) {
+    for (unsigned int i = 0; i < tree->children.size(); ++i) {
         GameNode* child = tree->children[i];
-        if (mostVisited == nullptr || child->totalVisits > mostVisited->totalVisits) {
+        if (child->totalVisits > mostVisited->totalVisits || mostVisited == nullptr) {
             mostVisited = child;
             mostVisitedIdx = i;
         }
@@ -111,7 +109,10 @@ playerActions_t MCTSCD::startSearch(int cutOffTime)
     if (mostVisitedIdx != -1) {
         bestActions = tree->actions[mostVisitedIdx];
     }
-
+    else {
+        tree->deleteAllChildren(); // free memory
+        return moveGenerator.getUniqueRandomAction();
+    }
 #ifdef DEBUG_ORDERS
     // DEBUG check if actions are friendly actions
     for (const auto& actions : tree->actions) {
@@ -127,7 +128,6 @@ playerActions_t MCTSCD::startSearch(int cutOffTime)
         }
     }
 #endif
-
     tree->deleteAllChildren(); // free memory
     return bestActions;
 }
@@ -248,7 +248,7 @@ MCTSCD::GameNode* MCTSCD::GameNode::bestChild(int maxDepth)
         // No more leafs because this node has no children!
         return this;
     }
-    return bestChild(maxDepth);
+    return best->bestChild(maxDepth);
 }
 
 MCTSCD::GameNode* MCTSCD::GameNode::createChild(playerActions_t action)

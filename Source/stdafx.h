@@ -3,7 +3,7 @@
 #define NOMINMAX
 
 #include "AbstractGroup.h"
-#include "BWAPI.h"
+#include <BWAPI.h>
 #include "targetver.h"
 #include <windows.h>
 
