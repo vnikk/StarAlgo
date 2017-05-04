@@ -43,7 +43,6 @@ GameNode* GameNode::bestChild(int maxDepth)
 GameNode* GameNode::createChild(playerActions_t action)
 {
     if (!action.empty()) {
-        //actions.push_back(action);
         GameState gameState2 = gameState.cloneIssue(action, moveGenerator._player);
         GameNode* newChild = newGameNode(gameState2, this);
         newChild->actions = action;
@@ -85,9 +84,9 @@ GameNode* GameNode::eGreedyInformed()
     if (randomNumber < EPSILON) { // select bias random
         playerActions_t action = moveGenerator.getBiasAction();
         // look if node already generated
-        for (size_t i = 0; i < actions.size(); ++i) {
-            if (action == actions.at(i)) {
-                return children.at(i);
+        for (auto& child : children) {
+            if (action == child->actions) {
+                return child;
             }
         }
         // else, create the new child

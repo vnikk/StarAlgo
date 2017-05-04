@@ -101,7 +101,7 @@ playerActions_t MCTSCD::startSearch(int cutOffTime)
 
     playerActions_t bestActions;
     if (mostVisitedIdx != -1) {
-        bestActions = tree->actions[mostVisitedIdx];
+        bestActions = tree->children[mostVisitedIdx]->actions;
     }
     else {
         tree->deleteAllChildren(); // free memory
