@@ -7,8 +7,9 @@
 #include <BWAPI.h>
 
 #include "AbstractOrder.h"
-#include "GameState.h"
 //#include "InformationManager.h"
+
+class GameState;
 
 static enum probName {
     Idle, Attack,

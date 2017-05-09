@@ -1,7 +1,10 @@
 #pragma once
 
+#include "GameState.h"
 #include "ActionGenerator.h"
 #include <vector>
+
+class GameState;
 
 class GameNode {
 public:
@@ -28,6 +31,7 @@ public:
     double    nodeValue(GameNode* node);
     void      deleteAllChildren();
     void      printNodeError(std::string errorMsg);
+    bool      isTerminal();
 
     // bandit policies
     GameNode* eGreedy();

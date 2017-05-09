@@ -37,7 +37,19 @@
     <ClInclude Include="Source\MCTSCD.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Minimax.h">
+    <ClInclude Include="Source\Negamax.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\GameNode.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UnitInfoStatic.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CombatSimDecreased.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\RegionManager.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -57,13 +69,25 @@
     <ClCompile Include="Source\ActionGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\CombatSimulator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\TargetSorting.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\MCTSCD.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GameNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UnitInfoStatic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CombatSimDecreased.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CombatSimulator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\RegionManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

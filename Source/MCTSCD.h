@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "GameNode.h"
+#include "RegionManager.h"
 #include "Timer.h"
 #include "GameState.h"
 #include "ActionGenerator.h"
@@ -18,9 +19,13 @@ class MCTSCD
 public:
     //MCTSCD(); // TODO need default?
     MCTSCD(int maxDepth, int maxSimulations, int maxSimulationTime, EvaluationFunction* ef);
-    playerActions_t start(GameState gs);
+    playerActions_t start(const GameState& gs);
 
+    RegionManager regman;
+    std::map<unsigned short, BWAPI::Unitset> _idToSquad;
+    void addSquadToGameState(GameState& gs, const BWAPI::Unitset& squad); // TODO change to Nova Squad; maybe??
 private:
+
     int _maxDepth;
 #ifdef DEPTH_STATS
     int _maxDepthReached;

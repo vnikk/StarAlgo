@@ -1,6 +1,7 @@
 #pragma once
 
-#include "AbstractGroup.h" // TODO remove
+// TODO remove or add to solution
+#include "AbstractGroup.h"
 #include "AbstractOrder.h"
 
 #include <BWAPI.h>
@@ -9,6 +10,7 @@
 #include <set>
 
 class CombatSimulator;
+class RegionManager;
 
 class GameState
 {
@@ -24,11 +26,13 @@ public:
         unitGroupVector enemy;
     };
 
-    GameState(); // by default uses a nullptr as combat simulator
-    GameState(CombatSimulator* combatSim);
+    //GameState(); // by default uses a nullptr as combat simulator
+    GameState(CombatSimulator* combatSim, RegionManager* regman);
     GameState(const GameState &gameState); // copy constructor
     ~GameState();
     const GameState& operator=(const GameState& gameState); // assignment operator
+
+    RegionManager* _regman; // TODO remove: probs for Negamax
 
     int _buildingTypes;
     army_t _army;
@@ -39,28 +43,15 @@ public:
     bool friendlySiegeTankResearched;
     bool enemySiegeTankResearched;
 
-    std::map<BWTA::Region*, int> _regionID;
-    std::map<int, BWTA::Region*> _regionFromID;
-    BWTA::RectangleArray<uint8_t> _regionIdMap;
-    BWTA::RectangleArray<int> _distanceBetweenRegions;
-    // TODO maybe use  boost::multi_index instead of two std::map?
-    std::map<BWTA::Chokepoint*, int> _chokePointID;
-    std::map<int, BWTA::Chokepoint*> _chokePointFromID;
-    bool _onlyRegions = true;
-
-    void initRegion();
-
-    BWTA::Region* getNearestRegion(int x, int y);
-
 //     void cleanData();
     void cleanArmyData();
     void loadIniConfig();
-    int getMilitaryGroupsSize();
-    int getAllGroupsSize();
-    int getFriendlyGroupsSize();
-    int getEnemyGroupsSize();
-    int getFriendlyUnitsSize();
-    int getEnemyUnitsSize();
+    int getMilitaryGroupsSize() const;
+    int getAllGroupsSize() const;
+    int getFriendlyGroupsSize() const;
+    int getEnemyGroupsSize() const;
+    int getFriendlyUnitsSize() const;
+    int getEnemyUnitsSize() const;
     //void importCurrentGameState();
     void addAllEnemyUnits();
     void addSelfBuildings();
@@ -99,6 +90,8 @@ public:
     void changeCombatSimulator(CombatSimulator* newCS);
     int getNextPlayerToMove(int &nextPlayerInSimultaneousNode) const;
     void sanityCheck();
+    std::set<int> GameState::getArmiesRegionsIntersection();
+    void addSquadToGameState(const BWAPI::Unitset& squad); // TODO change to Nova Squad; maybe??
 
 private:
     std::vector<int> regionsToDelete;

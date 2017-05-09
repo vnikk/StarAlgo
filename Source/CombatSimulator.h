@@ -134,6 +134,6 @@ public:
     comp_f _comparator1;
     comp_f _comparator2;
 
-    inline void sortGroups(UnitGroupVector* groups, comp_f comparator, UnitGroupVector* attackers);
+    void sortGroups(UnitGroupVector* groups, comp_f comparator, UnitGroupVector* attackers);
     
 };

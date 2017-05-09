@@ -74,23 +74,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Minimax.h" />
     <ClInclude Include="Source\ActionGenerator.h" />
     <ClInclude Include="Source\ActionProbabilities.h" />
+    <ClInclude Include="Source\CombatSimDecreased.h" />
     <ClInclude Include="Source\CombatSimulator.h" />
     <ClInclude Include="Source\EvaluationFunction.h" />
+    <ClInclude Include="Source\GameNode.h" />
     <ClInclude Include="Source\GameState.h" />
+    <ClInclude Include="Source\Negamax.h" />
+    <ClInclude Include="Source\RegionManager.h" />
     <ClInclude Include="Source\StarAlgoExtra.h" />
     <ClInclude Include="Source\stdafx.h" />
     <ClInclude Include="Source\MCTSCD.h" />
     <ClInclude Include="Source\TargetSorting.h" />
     <ClInclude Include="Source\targetver.h" />
+    <ClInclude Include="Source\UnitInfoStatic.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\ActionGenerator.cpp" />
+    <ClCompile Include="Source\CombatSimDecreased.cpp" />
     <ClCompile Include="Source\CombatSimulator.cpp" />
     <ClCompile Include="Source\EvaluationFunction.cpp" />
+    <ClCompile Include="Source\GameNode.cpp" />
     <ClCompile Include="Source\GameState.cpp" />
+    <ClCompile Include="Source\RegionManager.cpp" />
     <ClCompile Include="Source\StarAlgoExtra.cpp" />
     <ClCompile Include="Source\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -98,6 +105,7 @@
     </ClCompile>
     <ClCompile Include="Source\MCTSCD.cpp" />
     <ClCompile Include="Source\TargetSorting.cpp" />
+    <ClCompile Include="Source\UnitInfoStatic.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram2.cd" />

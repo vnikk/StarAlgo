@@ -134,10 +134,10 @@ CombatSimDecreased::combatStats_t CombatSimDecreased::getCombatStats(const UnitG
         if (typeId == BWAPI::UnitTypes::Terran_Siege_Tank_Tank_Mode) {
             typeId = BWAPI::UnitTypes::Terran_Siege_Tank_Siege_Mode;
         }
-        combatStats.bothAirDPF += unitGroup->numUnits * (*_maxDPF)[typeId].bothAir;
-        combatStats.bothGroundDPF += unitGroup->numUnits * (*_maxDPF)[typeId].bothGround;
-        combatStats.airDPF += unitGroup->numUnits * (*_maxDPF)[typeId].air;
-        combatStats.groundDPF += unitGroup->numUnits * (*_maxDPF)[typeId].ground;
+        combatStats.airDPF        += unitGroup->numUnits * _maxDPF->at(typeId).air;
+        combatStats.groundDPF     += unitGroup->numUnits * _maxDPF->at(typeId).ground;
+        combatStats.bothAirDPF    += unitGroup->numUnits * _maxDPF->at(typeId).bothAir;
+        combatStats.bothGroundDPF += unitGroup->numUnits * _maxDPF->at(typeId).bothGround;
 
         // if unit cannot attack, we don't consider its HP to "beat" (to exclude dummy buildings)
         // TODO rethink this!!! (but this doesn't affect to simulation)

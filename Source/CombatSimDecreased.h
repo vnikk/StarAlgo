@@ -19,7 +19,7 @@ class CombatSimDecreased : public CombatSimulator
 public:
     CombatSimDecreased(std::vector<std::vector<double> >* unitTypeDPF, std::vector<DPF_t>* _maxDPF, comp_f comparator1 = nullptr, comp_f comparator2 = nullptr);
     virtual ~CombatSimDecreased() {}
-    CombatSimDecreased * clone() const { return new CombatSimDecreased(*this); } // Virtual constructor (copying) 
+    virtual CombatSimulator* clone() const override { return new CombatSimDecreased(*this); } // Virtual constructor (copying) 
 
     int getCombatLength(GameState::army_t* army);
     void simulateCombat(GameState::army_t* armyInCombat, GameState::army_t* army, int frames = 0);

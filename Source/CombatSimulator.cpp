@@ -46,7 +46,7 @@ CombatSimulator::GroupDiversity CombatSimulator::getGroupDiversity(UnitGroupVect
     return GroupDiversity::GROUND;
 }
 
-inline void CombatSimulator::sortGroups(UnitGroupVector* groups, comp_f comparator, UnitGroupVector* attackers)
+void CombatSimulator::sortGroups(UnitGroupVector* groups, comp_f comparator, UnitGroupVector* attackers)
 {
     if (groups->size() <= 1) return; // nothing to sort
     // sort by default (buildings and non-attacking units at the end)
@@ -70,5 +70,4 @@ inline void CombatSimulator::sortGroups(UnitGroupVector* groups, comp_f comparat
     else {
         std::sort(groups->begin(), passiveBuilding, comparator);
     }
-
 }

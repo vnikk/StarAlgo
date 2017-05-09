@@ -248,7 +248,7 @@ GameNode* GameNode::PUCB()
     return best;
 }
 
-GameNode* GameNode::newGameNode(GameState &gameState, GameNode* parent = nullptr)
+GameNode* GameNode::newGameNode(GameState &gameState, GameNode* parent/* = nullptr*/)
 {
     GameNode* newNode = new GameNode(parent, gameState);
 
@@ -305,5 +305,11 @@ GameNode* GameNode::newGameNode(GameState &gameState, GameNode* parent = nullptr
     _branching.add(newNode->moveGenerator._size);
 #endif
     return newNode;
+}
+
+bool GameNode::isTerminal()
+{
+    // or enemy encountered (! node->gameState._regionsInCombat.empty())
+    return !gameState.getArmiesRegionsIntersection().empty() || gameState.gameover();
 }
 

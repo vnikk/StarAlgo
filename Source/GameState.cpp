@@ -1,11 +1,15 @@
 #include "stdafx.h"
+#include "MCTSCD.h"
+//#include "../../Ualbertabot/Source/Squad.h"
 #include "GameState.h"
+#include "RegionManager.h"
 #include "CombatSimSustained.h"
 #include "CombatSimDecreased.h"
 
 #include <BWTA.h>
 
 #include <iomanip>
+#include <utility>
 //#include "InformationManager.h"
 
 const int IDLE_TIME = 400; //in frames
@@ -13,129 +17,18 @@ const int NOTHING_TIME = 24 * 60 * 30; //in frames (30 minutes)
 
 using namespace BWAPI;
 
-// player = true  = friendly player
-// player = false = enemy player
-
-struct SortByXY
-{
-    bool operator ()(const BWTA::Region* const &lReg, const BWTA::Region* const &rReg) const
-    {
-        BWAPI::Position lPos = lReg->getCenter();
-        BWAPI::Position rPos = rReg->getCenter();
-        if (lPos.x == rPos.x) {
-            return lPos.y < rPos.y;
-        } else {
-            return lPos.x < rPos.x;
-        }
-    }
-
-    bool operator ()(const BWTA::Chokepoint* const &lReg, const BWTA::Chokepoint* const &rReg) const
-    {
-        BWAPI::Position lPos = lReg->getCenter();
-        BWAPI::Position rPos = rReg->getCenter();
-        if (lPos.x == rPos.x) {
-            return lPos.y < rPos.y;
-        } else {
-            return lPos.x < rPos.x;
-        }
-    }
-};
-
-void GameState::initRegion()  {
-    const std::set<BWTA::Region*> &regions_unsort = BWTA::getRegions();
-    std::set<BWTA::Region*, SortByXY> regions(regions_unsort.begin(), regions_unsort.end());
-
-    // -- Assign region to identifiers
-    int id = 0;
-    for (std::set<BWTA::Region*, SortByXY>::const_iterator r = regions.begin(); r != regions.end(); ++r) {
-        _regionID[*r] = id;
-        _regionFromID[id] = *r;
-        id++;
-    }
-
-    for (int x = 0; x < Broodwar->mapWidth(); ++x) {
-        for (int y = 0; y < Broodwar->mapHeight(); ++y) {
-            BWTA::Region* tileRegion = BWTA::getRegion(x, y);
-            if (tileRegion == NULL) tileRegion = getNearestRegion(x, y);
-            _regionIdMap[x][y] = _regionID[tileRegion];
-        }
-    }
-
-    // -- Sort chokepoints
-    const std::set<BWTA::Chokepoint*> &chokePoints_unsort = BWTA::getChokepoints();
-    std::set<BWTA::Chokepoint*, SortByXY> chokePoints(chokePoints_unsort.begin(), chokePoints_unsort.end());
-
-    // -- Assign chokepoints to identifiers and fill map
-    for (std::set<BWTA::Chokepoint*, SortByXY>::const_iterator c = chokePoints.begin(); c != chokePoints.end(); ++c) {
-        _chokePointID[*c] = id;
-        _chokePointFromID[id] = *c;
-        const std::pair<BWAPI::Position, BWAPI::Position> sides = (*c)->getSides();
-//        drawInfluenceLine(sides.first, sides.second, id);
-        id++;
-    }
-}
-
-BWTA::Region*  GameState::getNearestRegion(int x, int y) {
-    //searches outward in a spiral.
-    int length = 1;
-    int j = 0;
-    bool first = true;
-    int dx = 0;
-    int dy = 1;
-    BWTA::Region* tileRegion = NULL;
-    while (length < Broodwar->mapWidth()) //We'll ride the spiral to the end
-    {
-        //if is a valid regions, return it
-        tileRegion = BWTA::getRegion(x, y);
-        if (tileRegion != NULL) return tileRegion;
-
-        //otherwise, move to another position
-        x = x + dx;
-        y = y + dy;
-        //count how many steps we take in this direction
-        j++;
-        if (j == length) { //if we've reached the end, its time to turn
-            j = 0;    //reset step counter
-
-            //Spiral out. Keep going.
-            if (!first)
-                length++; //increment step counter if needed
-
-
-            first = !first; //first=true for every other turn so we spiral out at the right rate
-
-            //turn counter clockwise 90 degrees:
-            if (dx == 0) {
-                dx = dy;
-                dy = 0;
-            }
-            else {
-                dy = -dx;
-                dx = 0;
-            }
-        }
-        //Spiral out. Keep going.
-    }
-    return tileRegion;
-}
-
+/*
 GameState::GameState()
-    :_buildingTypes(NoneBuilding),
-    _time(0),
-    cs(nullptr),
-    friendlySiegeTankResearched(false),
-    enemySiegeTankResearched(false)
+: _buildingTypes(NoneBuilding), _time(0), cs(nullptr),
+  friendlySiegeTankResearched(false), enemySiegeTankResearched(false)
 {
     _army.friendly.clear();
     _army.enemy.clear();
 }
-
-GameState::GameState(CombatSimulator* combatSim)
-    :_buildingTypes(NoneBuilding),
-    _time(0),
-    cs(combatSim),
-    friendlySiegeTankResearched(false),
-    enemySiegeTankResearched(false)
+*/
+GameState::GameState(CombatSimulator* combatSim, RegionManager* regman)
+: _buildingTypes(NoneBuilding), _time(0), cs(combatSim),
+  friendlySiegeTankResearched(false), enemySiegeTankResearched(false), _regman(regman)
 {
     _army.friendly.clear();
     _army.enemy.clear();
@@ -144,7 +37,7 @@ GameState::GameState(CombatSimulator* combatSim)
 GameState::~GameState()
 {
     cleanArmyData();
-    delete cs;
+    //delete cs;
 }
 
 void GameState::cleanArmyData()
@@ -157,7 +50,7 @@ void GameState::cleanArmyData()
 
 void GameState::changeCombatSimulator(CombatSimulator* newCS)
 {
-    delete cs;
+    //delete cs;
     cs = newCS;
 }
 
@@ -165,9 +58,10 @@ GameState::GameState(const GameState &other)
     :_buildingTypes(other._buildingTypes),
     _regionsInCombat(other._regionsInCombat),
     _time(other._time),
-    cs(/*other.cs->clone()*/nullptr),
     friendlySiegeTankResearched(other.friendlySiegeTankResearched),
-    enemySiegeTankResearched(other.enemySiegeTankResearched)
+    enemySiegeTankResearched(other.enemySiegeTankResearched),
+    _regman(other._regman),
+    cs(other.cs->clone())
 {
     for (auto unitGroup : other._army.friendly) _army.friendly.push_back(new unitGroup_t(*unitGroup));
     for (auto unitGroup : other._army.enemy) _army.enemy.push_back(new unitGroup_t(*unitGroup));
@@ -175,6 +69,7 @@ GameState::GameState(const GameState &other)
 
 const GameState& GameState::operator=(const GameState& other)
 {
+    if (this == &other) return *this;
     // clean previous data
     cleanArmyData();
     delete cs;
@@ -191,7 +86,7 @@ const GameState& GameState::operator=(const GameState& other)
     return *this;
 }
 
-int GameState::getMilitaryGroupsSize()
+int GameState::getMilitaryGroupsSize() const
 {
     int size = 0;
     for (const auto& unitGroup : _army.friendly) {
@@ -205,22 +100,22 @@ int GameState::getMilitaryGroupsSize()
     return size;
 }
 
-int GameState::getAllGroupsSize()
+int GameState::getAllGroupsSize() const
 {
     return _army.friendly.size() + _army.enemy.size();
 }
 
-int GameState::getFriendlyGroupsSize()
+int GameState::getFriendlyGroupsSize() const
 {
     return _army.friendly.size();
 }
 
-int GameState::getEnemyGroupsSize()
+int GameState::getEnemyGroupsSize() const
 {
     return _army.enemy.size();
 }
 
-int GameState::getFriendlyUnitsSize()
+int GameState::getFriendlyUnitsSize() const
 {
     int size = 0;
     for (const auto& unitGroup : _army.friendly) {
@@ -229,7 +124,7 @@ int GameState::getFriendlyUnitsSize()
     return size;
 }
 
-int GameState::getEnemyUnitsSize()
+int GameState::getEnemyUnitsSize() const
 {
     int size = 0;
     for (const auto& unitGroup : _army.enemy) {
@@ -330,7 +225,7 @@ void GameState::addAllEnemyUnits()
         // ignore spells
         if (unit->getType().isSpell()) continue;
 
-        uint8_t regionId = _regionIdMap[unit->getTilePosition().x][unit->getTilePosition().y];
+        uint8_t regionId = _regman->_regionIdMap[unit->getTilePosition().x][unit->getTilePosition().y];
         uint8_t orderId = abstractOrder::Unknown;
         if (unit->getType().isBuilding()) orderId = abstractOrder::Nothing;
         float unitHP = unit->getHitPoints() + unit->getShields();
@@ -346,7 +241,7 @@ void GameState::addSelfBuildings()
         if ( !unit->getType().isBuilding() ) continue;
         if ( _buildingTypes == ResourceDepot && !unit->getType().isResourceDepot() ) continue;
 
-        uint8_t regionId = _regionIdMap[unit->getTilePosition().x][unit->getTilePosition().y];
+        uint8_t regionId = _regman->_regionIdMap[unit->getTilePosition().x][unit->getTilePosition().y];
         float unitHP = unit->getHitPoints() + unit->getShields();
         unitGroup_t* unitGroup = new unitGroup_t(unit->getType().getID(), 1, regionId, abstractOrder::Nothing, 0, _time, unitHP);
 
@@ -356,7 +251,7 @@ void GameState::addSelfBuildings()
 
 unsigned short GameState::addFriendlyUnit(Unit unit)
 {
-        uint8_t regionId = _regionIdMap[unit->getTilePosition().x][unit->getTilePosition().y];
+        uint8_t regionId = _regman->_regionIdMap[unit->getTilePosition().x][unit->getTilePosition().y];
         float unitHP = unit->getHitPoints() + unit->getShields();
         unitGroup_t* unitGroup = new unitGroup_t(unit->getType().getID(), 1, regionId, abstractOrder::Unknown, 0, _time, unitHP);
 
@@ -459,23 +354,6 @@ int GameState::getMoveTime(int unitTypeId, int regionId, int targetRegionId)
     return timeToMove;
 }
 
-// TODO remove?
-BWAPI::Position GameState::getCenterRegionId(int regionId)
-{
-    // TODO use informationManager->_chokepointIdOffset
-    BWTA::Region* region = _regionFromID[regionId];
-    if (region != NULL) {
-        return region->getCenter();
-    } else {
-        BWTA::Chokepoint* cp = _chokePointFromID[regionId];
-        if (cp != NULL) {
-            return cp->getCenter();
-        } else {
-            return BWAPI::Positions::None;
-        }
-    }
-}
-
 // TODO move this to BWTA
 int GameState::getRegionDistance(int regId1, int regId2)
 {
@@ -492,7 +370,7 @@ int GameState::getRegionDistance(int regId1, int regId2)
     } else {
     */
     //LOG("Distance from " << regId1 << " to " << regId2 << " = " << informationManager->_distanceBetweenRegions[regId1][regId2]);
-        return _distanceBetweenRegions[regId1][regId2];
+        return _regman->_distanceBetweenRegions[regId1][regId2];
     //}
 }
 
@@ -1235,7 +1113,7 @@ void GameState::sanityCheck()
 
     // check if regions in combat is still valid
     for (const auto& regionId : _regionsInCombat) {
-        army_t armyInCombat(getGroupsInRegion(regionId));
+        army_t armyInCombat = getGroupsInRegion(regionId);
         if (armyInCombat.friendly.empty() || armyInCombat.enemy.empty()) {
             DEBUG("No opossing army");
         }
@@ -1245,24 +1123,36 @@ void GameState::sanityCheck()
     }
 }
 
+std::set<int> GameState::getArmiesRegionsIntersection() {
+    std::set<int> result;
+    for (const auto& enemyGroup : _army.enemy){
+        for (const auto& friendlyGroup : _army.friendly){
+            if (friendlyGroup->regionId == enemyGroup->regionId) result.insert(enemyGroup->regionId);
+        }
+    }
+    return result;
+}
+
 bool GameState::hasAttackOrderAndTargetableEnemy(const army_t& army)
 {
-    for (const auto& group : army.friendly) if (group->orderId == abstractOrder::Attack) {
-        for (const auto& group2 : army.enemy) {
-            if (group2->regionId == group->regionId &&
-                canAttackType(UnitType(group->unitTypeId), UnitType(group2->unitTypeId))) {
-                return true;
+    for (const auto& group : army.friendly)
+        if (group->orderId == abstractOrder::Attack) {
+            for (const auto& group2 : army.enemy) {
+                if (group2->regionId == group->regionId &&
+                    canAttackType(UnitType(group->unitTypeId), UnitType(group2->unitTypeId))) {
+                    return true;
+                }
             }
         }
-    }
-    for (const auto& group : army.enemy) if (group->orderId == abstractOrder::Attack) {
-        for (const auto& group2 : army.friendly) {
-            if (group2->regionId == group->regionId &&
-                canAttackType(UnitType(group->unitTypeId), UnitType(group2->unitTypeId))) {
-                return true;
+    for (const auto& group : army.enemy)
+        if (group->orderId == abstractOrder::Attack) {
+            for (const auto& group2 : army.friendly) {
+                if (group2->regionId == group->regionId &&
+                    canAttackType(UnitType(group->unitTypeId), UnitType(group2->unitTypeId))) {
+                    return true;
+                }
             }
         }
-    }
     return false;
 }
 

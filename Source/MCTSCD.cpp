@@ -18,9 +18,9 @@ MCTSCD::MCTSCD(int maxDepth, int maxSimulations, int maxSimulationTime, Evaluati
 {
 }
 
-playerActions_t MCTSCD::start(GameState gs)
+playerActions_t MCTSCD::start(const GameState& gs)
 {
-    _rootGameState = &gs;
+    _rootGameState = new GameState(gs);
     combatsSimulated = 0;
 
     timerUTC.start();
@@ -29,11 +29,11 @@ playerActions_t MCTSCD::start(GameState gs)
 
     // save stats
     int friendlyGroups = gs.getFriendlyGroupsSize();
-    int friendlyUnits = gs.getFriendlyUnitsSize();
-    int enemyGroups = gs.getEnemyGroupsSize();
-    int enemyUnits = gs.getEnemyUnitsSize();
-    auto oldPrecision = fileLog.precision(6);
-    auto oldFlags = fileLog.flags();
+    int friendlyUnits  = gs.getFriendlyUnitsSize();
+    int enemyGroups    = gs.getEnemyGroupsSize();
+    int enemyUnits     = gs.getEnemyUnitsSize();
+    auto oldPrecision  = fileLog.precision(6);
+    auto oldFlags      = fileLog.flags();
     fileLog.setf(std::ios::fixed, std::ios::floatfield);
     LOG("Groups.F: " << std::setw(2) << friendlyGroups << " Groups.E: " << std::setw(2) << enemyGroups
         << " Units.F: " << std::setw(3) << friendlyUnits << " Units.E: " << std::setw(3) << enemyUnits
@@ -93,7 +93,7 @@ playerActions_t MCTSCD::startSearch(int cutOffTime)
     GameNode* mostVisited = nullptr;
     for (unsigned int i = 0; i < tree->children.size(); ++i) {
         GameNode* child = tree->children[i];
-        if (child->totalVisits > mostVisited->totalVisits || mostVisited == nullptr) {
+        if (mostVisited == nullptr || child->totalVisits > mostVisited->totalVisits) {
             mostVisited = child;
             mostVisitedIdx = i;
         }
@@ -153,3 +153,31 @@ void MCTSCD::simulate(GameState* gs, int time, int nextSimultaneous)
     if (_maxDepthRolloutReached < depth) _maxDepthRolloutReached = depth;
 #endif
 }
+
+void MCTSCD::addSquadToGameState(GameState& gs, const BWAPI::Unitset& squad) // TODO change to Nova Squad; maybe??
+{
+    std::map<unsigned short, unsigned int> groupIdFrequency;
+
+    unsigned short abstractGroupID;
+    // for each unit on the squad, add it to the game state and save id reference
+    for (const auto& squadUnit : squad) {
+        if (squadUnit->getType().isWorker()) continue; // ignore workers
+        abstractGroupID = gs.addFriendlyUnit(squadUnit);
+        groupIdFrequency[abstractGroupID]++;
+    }
+
+    unsigned int maxFrequency = 0;
+    unsigned short bestGroup;
+    // assign to the squad the most common group ID
+    for (const auto& frequency : groupIdFrequency) {
+        if (frequency.second > maxFrequency) {
+            bestGroup = frequency.first;
+            maxFrequency = frequency.second;
+        }
+    }
+
+    // one idGroup can have many squads!!
+    _idToSquad[bestGroup] = squad; // BOO, indirection!
+    //LOG("Best group for squad (" << squad << "): " << bestGroup);
+}
+
