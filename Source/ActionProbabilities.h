@@ -1,3 +1,4 @@
+// whole file © Alberto Uriarte
 #include "ActionGenerator.h"
 
 using namespace BWAPI;

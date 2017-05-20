@@ -1,3 +1,4 @@
+// whole file © Alberto Uriarte
 #include "stdafx.h"
 #include "TargetSorting.h"
 

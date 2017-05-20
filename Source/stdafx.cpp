@@ -1,9 +1,9 @@
-﻿#include "stdafx.h"
-#include "InformationManager.h"
+﻿// whole file © Alberto Uriarte
+#include "stdafx.h"
+
 #include <windows.h>
 #include <winbase.h>
 
-//TODO second definition?
 #define WINAPI_PARTITION_DESKTOP 1
 
 static std::mt19937 initGenerator() {
@@ -13,8 +13,8 @@ static std::mt19937 initGenerator() {
 
 std::ofstream fileLog;
 
-std::mt19937 gen = initGenerator(); // random number generator
-std::string configPath; // TODO remove?
+std::mt19937 gen = initGenerator();
+std::string configPath;
 
 unsigned int combatsSimulated = 0;
 
@@ -65,4 +65,9 @@ std::string intToString(const int& number)
 	std::ostringstream oss;
 	oss << number;
 	return oss.str();
+}
+
+int LoadConfigInt(const char *pszKey, const char *pszItem, const int iDefault)
+{
+	return GetPrivateProfileIntA(pszKey, pszItem, iDefault, configPath.c_str());
 }

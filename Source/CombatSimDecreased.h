@@ -1,3 +1,4 @@
+// whole file © Alberto Uriarte
 #pragma once
 #include "CombatSimulator.h"
 
@@ -11,15 +12,14 @@
 //  1 - all units in the army focus their attacks to the same target
 //  2 - if you cannot attack a target (flying?) but you can attack another, you lost your turn to attack
 // We don't consider upgrades for DPS
-// TODO combat time is from CombatSimulatorBASIC (method 1)
 //   - to get the combat length we actually need to simulate the combat: store the result of the combat to avoid re-simulate
 
 class CombatSimDecreased : public CombatSimulator
 {
 public:
-    CombatSimDecreased(std::vector<std::vector<double> >* unitTypeDPF, std::vector<DPF_t>* _maxDPF, comp_f comparator1 = nullptr, comp_f comparator2 = nullptr);
+    CombatSimDecreased(std::vector<std::vector<double> >* unitTypeDPF, std::vector<DPF_t>* maxDPF, comp_f comparator1 = nullptr, comp_f comparator2 = nullptr);
     virtual ~CombatSimDecreased() {}
-    virtual CombatSimulator* clone() const override { return new CombatSimDecreased(*this); } // Virtual constructor (copying) 
+    virtual CombatSimulator* clone() const override { return new CombatSimDecreased(*this); } // Virtual constructor (copying)
 
     int getCombatLength(GameState::army_t* army);
     void simulateCombat(GameState::army_t* armyInCombat, GameState::army_t* army, int frames = 0);
@@ -38,16 +38,10 @@ private:
             airHP(0.0), groundHP(0.0), airHPextra(0.0), groundHPextra(0.0){}
     };
 
-    std::vector<std::vector<double> >* _unitTypeDPF;
-    std::vector<DPF_t>* _maxDPF;
+    std::vector<std::vector<double> >* unitTypeDPF;
 
-    int _timeToKillEnemy;
-    int _timeToKillFriend;
-    int _extraTimeToKillEnemy;
-    int _extraTimeToKillFriend;
-
-    void getCombatLength(combatStats_t friendStats, combatStats_t enemyStats);
-    void getExtraCombatLength(combatStats_t friendStats, combatStats_t enemyStats);
+    void getCombatLength(const combatStats_t& friendStats, const combatStats_t& enemyStats);
+    void getExtraCombatLength(const combatStats_t& friendStats, const combatStats_t& enemyStats);
     combatStats_t getCombatStats(const UnitGroupVector &army);
 
     double getTimeToKillUnit(const UnitGroupVector &unitsInCombat, uint8_t enemyType, float enemyHP, double &DPF);

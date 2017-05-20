@@ -5,27 +5,24 @@
 
 #include <iomanip>
 
-MCTSCD::MCTSCD(int maxDepth, int maxSimulations, int maxSimulationTime, EvaluationFunction* ef)
-    :_maxDepth(maxDepth),
-    _ef(ef),
-    _maxSimulations(maxSimulations),
-    _maxSimulationTime(maxSimulationTime),
+// © me & Alberto Uriarte
+MCTSCD::MCTSCD(int maxDepth, int maxSimulations, int maxSimulationTime, EvaluationFunction* ef, RegionManager* regman)
+: maxDepth(maxDepth), evalFun(ef), maxSimulations(maxSimulations), maxSimulationTime(maxSimulationTime), regman(regman),
 #ifdef DEPTH_STATS
     _maxDepthReached(0),
     _maxDepthRolloutReached(0),
 #endif
-    _maxMissplacedUnits(0)
-{
-}
+    maxMissplacedUnits(0),
+    rootGameState(nullptr)
+{}
 
+// © me & Alberto Uriarte
 playerActions_t MCTSCD::start(const GameState& gs)
 {
-    _rootGameState = new GameState(gs);
+    rootGameState = new GameState(gs);
     combatsSimulated = 0;
 
-    timerUTC.start();
-    playerActions_t bestAction = startSearch(_rootGameState->_time + _maxSimulationTime);
-    double timeUCT = timerUTC.stopAndGetTime();
+    playerActions_t bestAction = startSearch(rootGameState->time + maxSimulationTime);
 
     // save stats
     int friendlyGroups = gs.getFriendlyGroupsSize();
@@ -37,49 +34,45 @@ playerActions_t MCTSCD::start(const GameState& gs)
     fileLog.setf(std::ios::fixed, std::ios::floatfield);
     LOG("Groups.F: " << std::setw(2) << friendlyGroups << " Groups.E: " << std::setw(2) << enemyGroups
         << " Units.F: " << std::setw(3) << friendlyUnits << " Units.E: " << std::setw(3) << enemyUnits
-        << " seconds: " << std::setw(10) << timeUCT
         << " combats: " << std::setw(5) << combatsSimulated);
 #ifdef BRANCHING_STATS
     << " maxBranching: " << std::setw(6) << (int)_branching.getMax()
-        << " avgBranching: " << _branching.getMean());
+        << " avgBranching: " << _branching.getMean();
 #endif
-
         fileLog.precision(oldPrecision);
         fileLog.flags(oldFlags);
 #ifdef DEPTH_STATS
         LOG(" - MaxDepth: " << _maxDepthReached << " MaxRolloutDepth: " << _maxDepthRolloutReached);
 #endif
-
         return bestAction;
 }
 
+// © me & Alberto Uriarte
 playerActions_t MCTSCD::startSearch(int cutOffTime)
 {
     // create root node
-    GameNode* tree = GameNode::newGameNode(*_rootGameState);
+    GameNode* tree = GameNode::newGameNode(*rootGameState);
 
-    // if root node only has one possible action, return it TODO that means gameover
-    ActionGenerator moveGenerator(_rootGameState, true); // by default MAX player (friendly)
-    if (moveGenerator._size == 1) {
-        tree->deleteAllChildren(); // free memory
+    // if root node only has one possible action - return it
+    ActionGenerator moveGenerator(rootGameState, true); // by default MAX player (friendly)
+    if (moveGenerator.actionsSize == 1) { // default value
+        tree->deleteSubtree(); // free memory
         return moveGenerator.getUniqueRandomAction();
     }
-
     // while withing computational budget
-    for (int i = 0; i < _maxSimulations; ++i) {
+    for (int i = 0; i < maxSimulations; ++i) {
         // tree policy, get best child
-        GameNode* leaf = tree->bestChild(_maxDepth);
+        GameNode* leaf = tree->bestChild(maxDepth);
 
         if (leaf) { // always true
             // default policy, run simulation
-            //             LOG("SIMULATION");
             GameState gs2 = leaf->gameState; // copy the game state to run simulation
             simulate(&gs2, cutOffTime, leaf->nextPlayerInSimultaneousNode);
 
             // use game frame time as a reduction factor
-            int time = gs2._time - _rootGameState->_time;
-            double evaluation = _ef->evaluate(gs2) * pow(0.999, time / 10.0);
-            // update all parents' values; TODO good place to put mostVisited
+            int time = gs2.time - rootGameState->time;
+            double evaluation = evalFun->evaluate(gs2) * pow(0.999, time / 10.0);
+            // update all parents' values
             while (leaf != nullptr) {
                 leaf->totalEvaluation += evaluation;
                 leaf->totalVisits++;
@@ -88,7 +81,7 @@ playerActions_t MCTSCD::startSearch(int cutOffTime)
         }
     }
 
-    // get best child; TODO no need if maxVisited is controlled from gameState(node), or when parents' values are updated (see above ~88)
+    // get best child
     int mostVisitedIdx = -1;
     GameNode* mostVisited = nullptr;
     for (unsigned int i = 0; i < tree->children.size(); ++i) {
@@ -104,7 +97,7 @@ playerActions_t MCTSCD::startSearch(int cutOffTime)
         bestActions = tree->children[mostVisitedIdx]->actions;
     }
     else {
-        tree->deleteAllChildren(); // free memory
+        tree->deleteSubtree(); // free memory
         return moveGenerator.getUniqueRandomAction();
     }
 #ifdef DEBUG_ORDERS
@@ -114,38 +107,33 @@ playerActions_t MCTSCD::startSearch(int cutOffTime)
             if (!action.isFriendly) {
                 DEBUG("Root actions are for enemey!!");
                 // print game state
-                DEBUG(_rootGameState->toString());
+                DEBUG(rootGameState->toString());
                 // print possible actions
-                ActionGenerator testActions(_rootGameState, true);
+                ActionGenerator testActions(rootGameState, true);
                 DEBUG(testActions.toString());
             }
         }
     }
 #endif
-    tree->deleteAllChildren(); // free memory
+    tree->deleteSubtree(); // free memory
     return bestActions;
 }
 
+// © me & Alberto Uriarte
 void MCTSCD::simulate(GameState* gs, int time, int nextSimultaneous)
 {
     int nextPlayerInSimultaneousNode = nextSimultaneous;
     int depth = 0;
-    ActionGenerator moveGenerator;
+    ActionGenerator moveGenerator(gs);
     int nextPlayer = gs->getNextPlayerToMove(nextPlayerInSimultaneousNode);
-    while (nextPlayer != -1 && gs->_time < time) {
+    while (nextPlayer != -1 && gs->time < time) {
         moveGenerator = ActionGenerator(gs, nextPlayer != 0);
-#ifdef BRANCHING_STATS
-        _branchingRollout.add(moveGenerator._size);
-#endif
-
         // chose random action
-        //         playerActions_t unitsAction = moveGenerator.getRandomAction();
         playerActions_t unitsAction = moveGenerator.getBiasAction();
 
-        gs->execute(unitsAction, moveGenerator._player); // TODO could incorporate moveForward()
+        gs->execute(unitsAction, moveGenerator.isFriendly);
         gs->moveForward();
         depth++;
-
         // look next player to move
         nextPlayer = gs->getNextPlayerToMove(nextPlayerInSimultaneousNode);
     }
@@ -154,18 +142,18 @@ void MCTSCD::simulate(GameState* gs, int time, int nextSimultaneous)
 #endif
 }
 
-void MCTSCD::addSquadToGameState(GameState& gs, const BWAPI::Unitset& squad) // TODO change to Nova Squad; maybe??
+// © me & Alberto Uriarte
+unsigned MCTSCD::addSquadToGameState(GameState& gs, const BWAPI::Unitset& squad)
 {
     std::map<unsigned short, unsigned int> groupIdFrequency;
 
     unsigned short abstractGroupID;
     // for each unit on the squad, add it to the game state and save id reference
     for (const auto& squadUnit : squad) {
-        if (squadUnit->getType().isWorker()) continue; // ignore workers
+        if (squadUnit->getType().isWorker()) { continue; } // ignore workers
         abstractGroupID = gs.addFriendlyUnit(squadUnit);
         groupIdFrequency[abstractGroupID]++;
     }
-
     unsigned int maxFrequency = 0;
     unsigned short bestGroup;
     // assign to the squad the most common group ID
@@ -175,9 +163,12 @@ void MCTSCD::addSquadToGameState(GameState& gs, const BWAPI::Unitset& squad) // 
             maxFrequency = frequency.second;
         }
     }
-
-    // one idGroup can have many squads!!
-    _idToSquad[bestGroup] = squad; // BOO, indirection!
-    //LOG("Best group for squad (" << squad << "): " << bestGroup);
+    // one idGroup can have many squads
+    if (!idToSquad[bestGroup].empty()) {
+        idToSquad[bestGroup].insert(squad.begin(), squad.end());
+    }
+    else {
+        idToSquad[bestGroup] = squad;
+    }
+    return bestGroup;
 }
-

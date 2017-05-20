@@ -3,15 +3,17 @@
 #include <cstdint>
 #include <vector>
 
-struct unitGroup_t {
+// © Alberto Uriarte
+struct unitGroup_t
+{
     uint8_t unitTypeId;
     uint8_t numUnits;
     uint8_t regionId;
     uint8_t orderId;
     uint8_t targetRegionId;
-    int endFrame; // expected frame when the order is done
+    int endFrame;   // expected frame when the order is done
     int startFrame; // frame when the order was issue
-    float HP; // group's average HP
+    float HP;       // group's average HP
 
     unitGroup_t(uint8_t unit, uint8_t size, uint8_t region, uint8_t order, uint8_t targetRegion, int initFrame, float _HP)
         :unitTypeId(unit), numUnits(size), regionId(region), orderId(order),

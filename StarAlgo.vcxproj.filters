@@ -19,9 +19,6 @@
     <ClInclude Include="Source\stdafx.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\StarAlgoExtra.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\ActionGenerator.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -52,6 +49,21 @@
     <ClInclude Include="Source\RegionManager.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\AbstractGroup.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CombatInfo.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\AbstractOrder.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CombatSimSustained.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CombatSimLanchester.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\EvaluationFunction.cpp">
@@ -61,9 +73,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\StarAlgoExtra.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\ActionGenerator.cpp">
@@ -88,6 +97,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\RegionManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CombatSimSustained.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CombatSimLanchester.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

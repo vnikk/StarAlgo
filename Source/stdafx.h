@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿// whole file © Alberto Uriarte
+#pragma once
 
 #define NOMINMAX
 
@@ -17,20 +18,16 @@
 
 extern std::ofstream fileLog;
 
-extern std::mt19937 gen; // random number generator
-extern std::string configPath; // TODO remove?
+extern std::mt19937 gen;
+extern std::string configPath;
 
 extern unsigned int combatsSimulated;
 
 #define DEBUG(Message) fileLog << __FILE__ ":" << __LINE__ << ": " << Message << std::endl
 #define LOG(Message) fileLog << Message << std::endl
 
-class UnitInfoStatic; // move to TargetSorting.h?
-//class InformationManager; // move to ActionGenerator.cpp?
-//class BuildManager; // move to InformationManager.cpp?
+class UnitInfoStatic;
 extern UnitInfoStatic* unitStatic;
-//extern InformationManager* informationManager;
-//extern BuildManager* buildManager;
 
 bool isAggressiveSpellcaster(BWAPI::UnitType unitType);
 
@@ -46,20 +43,5 @@ std::string LoadConfigString(const char *pszKey, const char *pszItem, const char
 
 std::string intToString(const int& number);
 
-/*
-TODO copy nova config
-void NovaAIModule::loadIniConfig()
-{
-TCHAR currentPath[MAX_PATH];
-GetCurrentDirectory(MAX_PATH, currentPath);
-configPath = std::string(currentPath) + "\\bwapi-data\\AI\\Nova.ini";
+int LoadConfigInt(const char *pszKey, const char *pszItem, const int iDefault = 0);
 
-std::string highLevel = LoadConfigString("high_level_search", "high_level_search", "OFF");
-if (highLevel == "ON") {
-HIGH_LEVEL_SEARCH = true;
-HIGH_LEVEL_REFRESH = LoadConfigInt("high_level_search", "refresh", 400);
-SEARCH_ALGORITHM = LoadConfigString("high_level_search", "algorithm", "ABCD");
-}
-
-}
-*/

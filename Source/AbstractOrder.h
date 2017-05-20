@@ -3,9 +3,9 @@
 #include <vector>
 #include <cstdint>
 
-// #define DEBUG_ORDERS
-
-struct action_t {
+// © Alberto Uriarte
+struct action_t
+{
     uint8_t orderID;
     uint8_t targetRegion; // if needed
 
@@ -18,26 +18,29 @@ struct action_t {
     };
 };
 
-struct choice_t {
-    unsigned short pos;    // position in the unit vector of the game state
+// © Alberto Uriarte
+struct choice_t
+{
+    unsigned short pos; // position in the unit vector of the game state
     std::vector<action_t> actions;
 #ifdef DEBUG_ORDERS
     uint8_t unitTypeId;
     uint8_t regionId;
     bool isFriendly;
-    choice_t(unsigned short _pos, std::vector<action_t> _actions, uint8_t _unitTypeId, uint8_t _regionId, bool _isFriendly)
-        : pos(_pos), actions(_actions), unitTypeId(_unitTypeId), regionId(_regionId), isFriendly(_isFriendly) {}
+    choice_t(unsigned short _pos, std::vector<action_t> _actions, uint8_t _unitTypeId, uint8_t regionId, bool _isFriendly)
+        : pos(_pos), actions(_actions), unitTypeId(_unitTypeId), regionId(regionId), isFriendly(_isFriendly) {}
 #else
     choice_t(unsigned short _pos, std::vector<action_t> _actions)
     : pos(_pos), actions(_actions)
     {}
 #endif
 };
-
 typedef std::vector<choice_t> choices_t;
 
-struct playerAction_t {
-    unsigned short pos;    // position in the unit vector of the game state
+// © Alberto Uriarte
+struct playerAction_t
+{
+    unsigned short pos; // position in the unit vector of the game state
     action_t action;
 
     playerAction_t()
@@ -61,24 +64,27 @@ struct playerAction_t {
 };
 typedef std::vector<playerAction_t> playerActions_t;
 
-namespace abstractOrder {
-    static enum order {
-        Unknown, Nothing, Idle, Gas, Mineral, Move, Attack, Heal
-    };
+// © Alberto Uriarte
+namespace abstractOrder
+{
 
-    static std::string name[8] = {
-        "Unknown", "Nothing", "Idle", "Gas", "Mineral", "Move", "Attack", "Heal"
-    };
+static enum order {
+    Unknown, Nothing, Idle, Gas, Mineral, Move, Attack, Heal
+};
 
-    //TODO optimize: if strict order - use switch
-    static order getOrder(std::string orderName) {
-        if (orderName.find("Nothing") != std::string::npos) return abstractOrder::Nothing;
-        else if (orderName.find("Idle") != std::string::npos) return abstractOrder::Idle;
-        else if (orderName.find("Gas") != std::string::npos) return abstractOrder::Gas;
-        else if (orderName.find("Mineral") != std::string::npos) return abstractOrder::Mineral;
-        else if (orderName.find("Move") != std::string::npos) return abstractOrder::Move;
-        else if (orderName.find("Attack") != std::string::npos) return abstractOrder::Attack;
-        else if (orderName.find("Heal") != std::string::npos) return abstractOrder::Heal;
-        else return abstractOrder::Unknown;
-    }
+static std::string name[8] = {
+    "Unknown", "Nothing", "Idle", "Gas", "Mineral", "Move", "Attack", "Heal"
+};
+
+static order getOrder(std::string orderName) {
+    if      (orderName.find("Nothing") != std::string::npos) return abstractOrder::Nothing;
+    else if (orderName.find("Idle")    != std::string::npos) return abstractOrder::Idle;
+    else if (orderName.find("Gas")     != std::string::npos) return abstractOrder::Gas;
+    else if (orderName.find("Mineral") != std::string::npos) return abstractOrder::Mineral;
+    else if (orderName.find("Move")    != std::string::npos) return abstractOrder::Move;
+    else if (orderName.find("Attack")  != std::string::npos) return abstractOrder::Attack;
+    else if (orderName.find("Heal")    != std::string::npos) return abstractOrder::Heal;
+    else return abstractOrder::Unknown;
+}
+
 };

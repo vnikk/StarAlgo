@@ -5,16 +5,24 @@
 #include "GameState.h"
 #include "CombatInfo.h"
 #include "TargetSorting.h"
-//#include "InformationManager.h"
 
 typedef std::vector<unitGroup_t*> UnitGroupVector;
 typedef std::function<bool(const unitGroup_t* a, const unitGroup_t* b)> comp_f;
 
+// © me & Alberto Uriarte
 class CombatSimulator
 {
 public:
-    virtual CombatSimulator* clone() const = 0;  // Virtual constructor (copying) 
+    virtual CombatSimulator* clone() const = 0;  // Virtual constructor (copying)
     virtual ~CombatSimulator() {}
+
+    enum GroupDiversity { AIR, GROUND, BOTH };
+    GroupDiversity getGroupDiversity(UnitGroupVector* groups);
+
+    comp_f _comparator1;
+    comp_f _comparator2;
+
+    void sortGroups(UnitGroupVector* groups, comp_f comparator, UnitGroupVector* attackers);
 
     /// <summary>Retrieves the expected duration of the combat.</summary>
     /// <param name="army">Abstraction of enemy and self units.</param>
@@ -28,11 +36,12 @@ public:
     virtual void simulateCombat(GameState::army_t* armyInCombat, GameState::army_t* army, int frames = 0) = 0;
 
 
+    // © Alberto Uriarte
     /// <summary>Remove one goup from a list</summary>
     /// <param name="groupToRemove">Pointer of the group to be removed.</param>
     /// <param name="groups">Pointer of the list of groups from we will remove the groups.</param>
     /// <returns>True if the group was removed.</returns>
-    inline bool removeGroup(unitGroup_t* groupToRemove, UnitGroupVector* groups)
+    bool removeGroup(unitGroup_t* groupToRemove, UnitGroupVector* groups)
     {
         auto groupFound = std::find(groups->begin(), groups->end(), groupToRemove);
         if (groupFound != groups->end()) {
@@ -45,21 +54,22 @@ public:
         }
     }
 
+    // © Alberto Uriarte
     /// <summary>Remove multiple goups from a list</summary>
     /// <param name="groupsToRemove">List of pointer of groups to be removed.</param>
     /// <param name="groups">Pointer of the list of groups from we will remove the groups.</param>
-    inline void removeAllGroups(UnitGroupVector* groupsToRemove, UnitGroupVector* groups)
+    void removeAllGroups(UnitGroupVector* groupsToRemove, UnitGroupVector* groups)
     {
         for (const auto& groupToDelete : *groupsToRemove) removeGroup(groupToDelete, groups);
         groupsToRemove->clear();
     }
 
-    /// <summary>Remove multiple military goups from a list. It assumes that the list is sorted 
+    /// <summary>Remove multiple military goups from a list. It assumes that the list is sorted
     /// (not military units at the end)</summary>
     /// <param name="groupsToRemove">List of pointer of groups to be removed.</param>
     /// <param name="groups">Pointer of the list of groups from we will remove the groups.</param>
-    inline void removeAllMilitaryGroups(UnitGroupVector* groupsToRemove, UnitGroupVector* groups);
-    
+    void removeAllMilitaryGroups(UnitGroupVector* groupsToRemove, UnitGroupVector* groups);
+
 
     /// <summary>Check if the combat can be simulated</summary>
     /// <param name="armyInCombat">List of units involved in the combat.</param>
@@ -67,73 +77,15 @@ public:
     /// <returns>True if the combat can be simulated.</returns>
     bool canSimulate(GameState::army_t* armyInCombat, GameState::army_t* army);
 
+    // © me & Alberto Uriarte
     /// Remove Harmless indestructible units
-    inline void removeHarmlessIndestructibleUnits(GameState::army_t* armyInCombat)
-    {
-        bool friendlyCanAttackGround = false;
-        bool friendlyCanAttackAir = false;
-        bool enemyCanAttackGround = false;
-        bool enemyCanAttackAir = false;
-        bool friendlyOnlyGroundUnits = true;
-        bool friendlyOnlyAirUnits = true;
-        bool enemyOnlyGroundUnits = true;
-        bool enemyOnlyAirUnits = true;
-        // a (potential) harmless group is a unit type that cannot attack any enemy unit, 
-        // i.e. they cannot attack both (air/ground) units
-        UnitGroupVector friendlyHarmlessGroups;
-        UnitGroupVector enemyHarmlessGroups;
+    void removeHarmlessIndestructibleUnits(GameState::army_t* armyInCombat);
 
-        // collect stats
-        for (const auto& group : armyInCombat->friendly) {
-            BWAPI::UnitType uType(group->unitTypeId);
-            if (canAttackAirUnits(uType)) friendlyCanAttackAir = true;
-            if (canAttackGroundUnits(uType)) friendlyCanAttackGround = true;
-            if (uType.isFlyer()) friendlyOnlyGroundUnits = false;
-            else friendlyOnlyAirUnits = false;
-            if (!canAttackAirUnits(uType) || !canAttackGroundUnits(uType)) friendlyHarmlessGroups.push_back(group);
-        }
-        for (const auto& group : armyInCombat->enemy) {
-            BWAPI::UnitType uType(group->unitTypeId);
-            if (canAttackAirUnits(uType)) enemyCanAttackAir = true;
-            if (canAttackGroundUnits(uType)) enemyCanAttackGround = true;
-            if (uType.isFlyer()) enemyOnlyGroundUnits = false;
-            else enemyOnlyAirUnits = false;
-            if (!canAttackAirUnits(uType) || !canAttackGroundUnits(uType)) enemyHarmlessGroups.push_back(group);
-        }
+protected:
+    std::vector<DPF_t>* maxDPF;
 
-        // remove units that cannot deal damage and cannot receive damage
-        for (auto& group : friendlyHarmlessGroups) {
-            BWAPI::UnitType uType(group->unitTypeId);
-            if ((uType.isFlyer() && !enemyCanAttackAir) || (!uType.isFlyer() && !enemyCanAttackGround)) {
-                // we cannot receive damage
-                if ((!canAttackAirUnits(uType) && !canAttackGroundUnits(uType)) ||
-                    (canAttackAirUnits(uType) && enemyOnlyGroundUnits) ||
-                    (canAttackGroundUnits(uType) && enemyOnlyAirUnits)) {
-                    // wee cannot deal damage, therefore, remove unit
-                    armyInCombat->friendly.erase(std::remove(armyInCombat->friendly.begin(), armyInCombat->friendly.end(), group), armyInCombat->friendly.end());
-                }
-            }
-        }
-        for (auto& group : enemyHarmlessGroups) {
-            BWAPI::UnitType uType(group->unitTypeId);
-            if ((uType.isFlyer() && !friendlyCanAttackAir) || (!uType.isFlyer() && !friendlyCanAttackGround)) {
-                // we cannot receive damage
-                if ((!canAttackAirUnits(uType) && !canAttackGroundUnits(uType)) ||
-                    (canAttackAirUnits(uType) && friendlyOnlyGroundUnits) || 
-                    (canAttackGroundUnits(uType) && friendlyOnlyAirUnits)) {
-                    // wee cannot deal damage, therefore, remove unit
-                    armyInCombat->enemy.erase(std::remove(armyInCombat->enemy.begin(), armyInCombat->enemy.end(), group), armyInCombat->enemy.end());
-                }
-            }
-        }
-    }
-
-    enum GroupDiversity { AIR, GROUND, BOTH };
-    GroupDiversity getGroupDiversity(UnitGroupVector* groups);
-
-    comp_f _comparator1;
-    comp_f _comparator2;
-
-    void sortGroups(UnitGroupVector* groups, comp_f comparator, UnitGroupVector* attackers);
-    
+    int timeToKillEnemy;
+    int timeToKillFriend;
+    int extraTimeToKillEnemy;
+    int extraTimeToKillFriend;
 };

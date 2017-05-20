@@ -4,18 +4,17 @@
 #include <random>
 #include <iomanip>
 
+// © Alberto Uriarte
 const double UCB_C = 5;        // this is the constant that regulates exploration vs exploitation, it must be tuned for each domain
 const double EPSILON = 0.2; // e-greedy strategy
 
-// returns a node that has >1 actions, or gameover
-//my
-void GameNode::deleteAllChildren() // TODO rename to deleteSubtree? 
+void GameNode::deleteSubtree()
 {
-    for (auto& child : children) child->deleteAllChildren();
+    for (auto& child : children) child->deleteSubtree();
     delete this; // https://isocpp.org/wiki/faq/freestore-mgmt#delete-this As long as you're careful, it's OK for an object to commit suicide (delete this).
 }
 
-//my
+// returns a node that has >1 actions, or gameover
 GameNode* GameNode::bestChild(int maxDepth)
 {
     // Cut the tree policy at a predefined depth
@@ -27,25 +26,25 @@ GameNode* GameNode::bestChild(int maxDepth)
     // if first time here return this node
     if (totalVisits == 0) return this;
 
-    // Bandit policy (aka Tree policy)
-    //     GameNode* best = UCB(this);
-    //     GameNode* best = eGreedy(this);
-    //     GameNode* best = eGreedyInformed(this);
-    GameNode* best = PUCB();
+    // Bandit policy (aka Tree policy); choose one
+    //GameNode* best = UCB();
+    //GameNode* best = eGreedy();
+    GameNode* best = eGreedyInformed();
+    //GameNode* best = PUCB();
 
-    if (best == nullptr) {
-        // No more leafs because this node has no children!
+    if (best == nullptr) { // No more leafs because this node has no children!
         return this;
     }
     return best->bestChild(maxDepth);
 }
 
-GameNode* GameNode::createChild(playerActions_t action)
+// © me & Alberto Uriarte
+GameNode* GameNode::createChild(const playerActions_t& action)
 {
     if (!action.empty()) {
-        GameState gameState2 = gameState.cloneIssue(action, moveGenerator._player);
-        GameNode* newChild = newGameNode(gameState2, this);
-        newChild->actions = action;
+        GameState gameState2 = gameState.cloneIssue(action, moveGenerator.isFriendly);
+        GameNode* newChild   = newGameNode(gameState2, this);
+        newChild->actions    = action;
         children.push_back(newChild);
         return newChild;
     }
@@ -55,13 +54,15 @@ GameNode* GameNode::createChild(playerActions_t action)
     }
 }
 
-void GameNode::printNodeError(std::string errorMsg)
+// © me & Alberto Uriarte
+void GameNode::printNodeError(const std::string& errorMsg)
 {
     DEBUG(errorMsg);
     LOG(gameState.toString());
     LOG("playerTurn: " << playerTurn);
 }
 
+// © me & Alberto Uriarte
 GameNode* GameNode::eGreedyInformed()
 {
     // if no children yet, create one
@@ -70,7 +71,7 @@ GameNode* GameNode::eGreedyInformed()
             printNodeError("Error creating first child");
             return this;
         }
-        //         playerActions_t action = currentNode->moveGenerator.getBiasAction();
+        // playerActions_t action = currentNode->moveGenerator.getBiasAction();
         playerActions_t action = moveGenerator.getMostProbAction();
         return createChild(action);
 
@@ -78,7 +79,6 @@ GameNode* GameNode::eGreedyInformed()
 
     std::uniform_real_distribution<> uniformDist(0, 1);
     double randomNumber = uniformDist(gen);
-    //LOG("Random number: " << randomNumber);
     GameNode* best = nullptr;
 
     if (randomNumber < EPSILON) { // select bias random
@@ -97,7 +97,7 @@ GameNode* GameNode::eGreedyInformed()
         double tmpScore;
         for (const auto& child : children) {
             tmpScore = child->totalEvaluation / child->totalVisits;
-            if (playerTurn == 0) tmpScore = -tmpScore; // if min node, reverse score
+            if (playerTurn == 0) { tmpScore = -tmpScore; } // if min node, reverse score
             if (best == nullptr || tmpScore > bestScore) {
                 best = child;
                 bestScore = tmpScore;
@@ -108,6 +108,7 @@ GameNode* GameNode::eGreedyInformed()
     return best;
 }
 
+// © me & Alberto Uriarte
 GameNode* GameNode::eGreedy()
 {
     // if no children yet, create one
@@ -118,7 +119,6 @@ GameNode* GameNode::eGreedy()
         }
         playerActions_t action = moveGenerator.getUniqueRandomAction();
         return createChild(action);
-
     }
 
     GameNode* best = nullptr;
@@ -128,13 +128,12 @@ GameNode* GameNode::eGreedy()
 
     if (randomNumber < EPSILON) {
         // select random child
-        // -------------------------
         unsigned int totalChildren;
         double maxUnsignedInt = std::numeric_limits<unsigned int>::max();
-        if (moveGenerator._size > maxUnsignedInt) totalChildren = (unsigned int)maxUnsignedInt;
-        else totalChildren = (unsigned int)moveGenerator._size;
+        if (moveGenerator.actionsSize > maxUnsignedInt) totalChildren = (unsigned int)maxUnsignedInt;
+        else totalChildren = (unsigned int)moveGenerator.actionsSize;
 
-        unsigned int createdChildren = children.size();
+        size_t createdChildren = children.size();
         std::uniform_int_distribution<int> uniformDist(0, totalChildren - 1);
         int randomChoice = uniformDist(gen);
 
@@ -149,22 +148,21 @@ GameNode* GameNode::eGreedy()
     }
     else {
         // select max reward child
-        // -------------------------
         double bestScore = 0;
         double tmpScore;
         for (const auto& child : children) {
             tmpScore = child->totalEvaluation / child->totalVisits;
-            if (playerTurn == 0) tmpScore = -tmpScore; // if min node, reverse score
+            if (playerTurn == 0) { tmpScore = -tmpScore; } // if min node, reverse score
             if (best == nullptr || tmpScore > bestScore) {
                 best = child;
                 bestScore = tmpScore;
             }
         }
     }
-
     return best;
 }
 
+// © me & Alberto Uriarte
 GameNode* GameNode::UCB()
 {
     // WARNING if branching factor too high we will stuck at this depth
@@ -184,10 +182,10 @@ GameNode* GameNode::UCB()
             bestScore = tmpScore;
         }
     }
-
     return best;
 }
 
+// © me & Alberto Uriarte
 double GameNode::nodeValue(GameNode* node)
 {
     double exploitation = node->totalEvaluation / node->totalVisits;
@@ -196,26 +194,24 @@ double GameNode::nodeValue(GameNode* node)
         //exploitation = (exploitation + evaluation_bound)/(2*evaluation_bound);
     }
     else {
-        //exploitation = - (exploitation - evaluation_bound)/(2*evaluation_bound);
+        //exploitation = -(exploitation - evaluation_bound) / (2 * evaluation_bound);
         exploitation = -exploitation;
     }
-
     double tmp = UCB_C*exploitation + exploration;
     return tmp;
 }
 
+// © me & Alberto Uriarte
 GameNode* GameNode::PUCB()
 {
     // if no children yet, create them
     if (children.empty()) {
-        //         if (moveGenerator._size > 10000) LOG("Creating " << moveGenerator._size << " nodes");
         double prob;
         while (moveGenerator.hasMoreActions()) {
             playerActions_t action = moveGenerator.getNextActionProbability(prob);
             GameNode* child = createChild(action);
             child->actionsProbability = prob;
         }
-        //         if (->moveGenerator._size > 10000) LOG("Done.");
     }
 
     double bestScore = 0;
@@ -227,7 +223,7 @@ GameNode* GameNode::PUCB()
         double upperBound = 0.0;
         if (child->totalVisits > 0) {
             avgReward = child->totalEvaluation / child->totalVisits;
-            if (child->parent->playerTurn == 0) avgReward = -avgReward; // min node
+            if (child->parent->playerTurn == 0) { avgReward = -avgReward; } // min node
             // since our reward is form -1 to 1, we need to normalize to 0 to 1
             avgReward = (avgReward + 1) / 2.0;
             upperBound = sqrt((3 * log(child->parent->totalVisits)) / (2 * child->totalVisits));
@@ -238,16 +234,16 @@ GameNode* GameNode::PUCB()
         }
 
         tmpScore = avgReward + upperBound - bonusPenalty;
-
         if (best == nullptr || tmpScore > bestScore) {
             best = child;
             bestScore = tmpScore;
         }
     }
-
     return best;
 }
 
+// © me & Alberto Uriarte
+// makes a node to have several children
 GameNode* GameNode::newGameNode(GameState &gameState, GameNode* parent/* = nullptr*/)
 {
     GameNode* newNode = new GameNode(parent, gameState);
@@ -271,10 +267,10 @@ GameNode* GameNode::newGameNode(GameState &gameState, GameNode* parent/* = nullp
     int iterations = 0;
 #endif
     // if we only have one possible action, execute it and move forward
-    while (newNode->moveGenerator._size == 1) {
+    while (newNode->moveGenerator.actionsSize == 1) {
         // execute the only action
         playerActions_t unitsAction = newNode->moveGenerator.getNextAction();
-        newNode->gameState.execute(unitsAction, newNode->moveGenerator._player);
+        newNode->gameState.execute(unitsAction, newNode->moveGenerator.isFriendly);
         newNode->gameState.moveForward();
 
         // prepare the node
@@ -284,14 +280,13 @@ GameNode* GameNode::newGameNode(GameState &gameState, GameNode* parent/* = nullp
         if (newNode->playerTurn == -1) return newNode;
         // generate the player possible moves
         newNode->moveGenerator = ActionGenerator(&newNode->gameState, newNode->playerTurn != 0);
-
 #ifdef _DEBUG
         iterations++;
         // DEBUG if still only one action, we can end in an infinite loop
-        if (newNode->moveGenerator._size == 1 && iterations > 1) {
+        if (newNode->moveGenerator.actionsSize == 1 && iterations > 1) {
             DEBUG("Still only 1 action at iteration " << iterations);
         }
-        if (newNode->moveGenerator._size < 1) {
+        if (newNode->moveGenerator.actionsSize < 1) {
             DEBUG("PARENT GAME STATE");
             DEBUG(gameState.toString());
             DEBUG("LAST GAME STATE");
@@ -300,16 +295,14 @@ GameNode* GameNode::newGameNode(GameState &gameState, GameNode* parent/* = nullp
         }
 #endif
     }
-
 #ifdef BRANCHING_STATS
-    _branching.add(newNode->moveGenerator._size);
+    _branching.add(newNode->moveGenerator.actionsSize);
 #endif
     return newNode;
 }
 
 bool GameNode::isTerminal()
 {
-    // or enemy encountered (! node->gameState._regionsInCombat.empty())
+    // other way: node->gameState.regionsInCombat.empty()
     return !gameState.getArmiesRegionsIntersection().empty() || gameState.gameover();
 }
-

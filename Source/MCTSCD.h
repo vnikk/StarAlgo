@@ -2,31 +2,27 @@
 
 #include "GameNode.h"
 #include "RegionManager.h"
-#include "Timer.h"
 #include "GameState.h"
 #include "ActionGenerator.h"
 #include "EvaluationFunction.h"
 #include <BWAPI.h>
+#include "AbstractOrder.h"
 
 #include <vector>
-// TODO
-// #define DEPTH_STATS
-// #define BRANCHING_STATS
 
-//TODO rename methods
+// © me & Alberto Uriarte
 class MCTSCD
 {
 public:
-    //MCTSCD(); // TODO need default?
-    MCTSCD(int maxDepth, int maxSimulations, int maxSimulationTime, EvaluationFunction* ef);
+    MCTSCD(int maxDepth, int maxSimulations, int maxSimulationTime, EvaluationFunction* ef, RegionManager* regman);
     playerActions_t start(const GameState& gs);
 
-    RegionManager regman;
-    std::map<unsigned short, BWAPI::Unitset> _idToSquad;
-    void addSquadToGameState(GameState& gs, const BWAPI::Unitset& squad); // TODO change to Nova Squad; maybe??
+    RegionManager* regman;
+    std::map<unsigned short, BWAPI::Unitset> idToSquad;
+    unsigned addSquadToGameState(GameState& gs, const BWAPI::Unitset& squad);
 private:
 
-    int _maxDepth;
+    int maxDepth;
 #ifdef DEPTH_STATS
     int _maxDepthReached;
     int _maxDepthRolloutReached;
@@ -35,14 +31,11 @@ private:
     Statistic _branching;
     Statistic _branchingRollout;
 #endif
-    int _maxMissplacedUnits;
-    EvaluationFunction* _ef;
-    int _maxSimulations;
-    int _maxSimulationTime;
-    GameState* _rootGameState;
-
-    // timers
-    Timer timerUTC;
+    int maxMissplacedUnits;
+    int maxSimulations;
+    int maxSimulationTime;
+    EvaluationFunction* evalFun;
+    GameState* rootGameState;
 
     playerActions_t startSearch(int cutOffTime);
     void simulate(GameState* gs, int time, int nextSimultaneous);

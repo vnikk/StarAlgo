@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "MCTSCD.h"
-//#include "../../Ualbertabot/Source/Squad.h"
 #include "GameState.h"
 #include "RegionManager.h"
 #include "CombatSimSustained.h"
@@ -10,167 +9,157 @@
 
 #include <iomanip>
 #include <utility>
-//#include "InformationManager.h"
 
+// © Alberto Uriarte
 const int IDLE_TIME = 400; //in frames
 const int NOTHING_TIME = 24 * 60 * 30; //in frames (30 minutes)
 
 using namespace BWAPI;
 
-/*
-GameState::GameState()
-: _buildingTypes(NoneBuilding), _time(0), cs(nullptr),
-  friendlySiegeTankResearched(false), enemySiegeTankResearched(false)
-{
-    _army.friendly.clear();
-    _army.enemy.clear();
-}
-*/
+// © me & Alberto Uriarte
 GameState::GameState(CombatSimulator* combatSim, RegionManager* regman)
-: _buildingTypes(NoneBuilding), _time(0), cs(combatSim),
-  friendlySiegeTankResearched(false), enemySiegeTankResearched(false), _regman(regman)
+: buildingTypes(NoneBuilding), time(0), cs(combatSim),
+  friendlySiegeTankResearched(false), enemySiegeTankResearched(false), regman(regman)
 {
-    _army.friendly.clear();
-    _army.enemy.clear();
+    army.friendly.clear();
+    army.enemy.clear();
 }
 
 GameState::~GameState()
 {
     cleanArmyData();
-    //delete cs;
 }
 
+// © me & Alberto Uriarte
 void GameState::cleanArmyData()
 {
-    for (auto unitGroup : _army.friendly) delete unitGroup;
-    _army.friendly.clear();
-    for (auto unitGroup : _army.enemy) delete unitGroup;
-    _army.enemy.clear();
+    for (auto unitGroup : army.friendly) delete unitGroup;
+    for (auto unitGroup : army.enemy)    delete unitGroup;
+    army.friendly.clear();
+    army.enemy.clear();
 }
 
 void GameState::changeCombatSimulator(CombatSimulator* newCS)
 {
-    //delete cs;
     cs = newCS;
 }
 
 GameState::GameState(const GameState &other)
-    :_buildingTypes(other._buildingTypes),
-    _regionsInCombat(other._regionsInCombat),
-    _time(other._time),
-    friendlySiegeTankResearched(other.friendlySiegeTankResearched),
-    enemySiegeTankResearched(other.enemySiegeTankResearched),
-    _regman(other._regman),
-    cs(other.cs->clone())
+: buildingTypes(other.buildingTypes), regionsInCombat(other.regionsInCombat), time(other.time),
+  friendlySiegeTankResearched(other.friendlySiegeTankResearched), enemySiegeTankResearched(other.enemySiegeTankResearched),
+  regman(other.regman), cs(other.cs)
 {
-    for (auto unitGroup : other._army.friendly) _army.friendly.push_back(new unitGroup_t(*unitGroup));
-    for (auto unitGroup : other._army.enemy) _army.enemy.push_back(new unitGroup_t(*unitGroup));
+    for (auto unitGroup : other.army.friendly) army.friendly.push_back(new unitGroup_t(*unitGroup));
+    for (auto unitGroup : other.army.enemy   ) army.enemy   .push_back(new unitGroup_t(*unitGroup));
 }
 
+// © me & Alberto Uriarte
 const GameState& GameState::operator=(const GameState& other)
 {
     if (this == &other) return *this;
     // clean previous data
     cleanArmyData();
-    delete cs;
     // copy new data
-    _buildingTypes = other._buildingTypes;
-    for (auto unitGroup : other._army.friendly) _army.friendly.push_back(new unitGroup_t(*unitGroup));
-    for (auto unitGroup : other._army.enemy) _army.enemy.push_back(new unitGroup_t(*unitGroup));
-    _regionsInCombat = other._regionsInCombat;
-    _time = other._time;
-    cs = other.cs->clone();
+    buildingTypes = other.buildingTypes;
+    for (auto unitGroup : other.army.friendly) army.friendly.push_back(new unitGroup_t(*unitGroup));
+    for (auto unitGroup : other.army.enemy) army.enemy.push_back(new unitGroup_t(*unitGroup));
+    regionsInCombat = other.regionsInCombat;
+    time = other.time;
+    cs   = other.cs;
     friendlySiegeTankResearched = other.friendlySiegeTankResearched;
-    enemySiegeTankResearched = other.enemySiegeTankResearched;
-
+    enemySiegeTankResearched    = other.enemySiegeTankResearched;
     return *this;
 }
 
+// © me & Alberto Uriarte
 int GameState::getMilitaryGroupsSize() const
 {
     int size = 0;
-    for (const auto& unitGroup : _army.friendly) {
+    for (const auto& unitGroup : army.friendly) {
         BWAPI::UnitType unitType(unitGroup->unitTypeId);
-        if (unitType.canAttack() || unitType.isSpellcaster()) ++size;
+        if (unitType.canAttack() || unitType.isSpellcaster()) { ++size; }
     }
-    for (const auto& unitGroup : _army.enemy) {
+    for (const auto& unitGroup : army.enemy) {
         BWAPI::UnitType unitType(unitGroup->unitTypeId);
-        if (unitType.canAttack() || unitType.isSpellcaster()) ++size;
+        if (unitType.canAttack() || unitType.isSpellcaster()) { ++size; }
     }
     return size;
 }
 
+// © Alberto Uriarte
 int GameState::getAllGroupsSize() const
 {
-    return _army.friendly.size() + _army.enemy.size();
+    return army.friendly.size() + army.enemy.size();
 }
 
+// © Alberto Uriarte
 int GameState::getFriendlyGroupsSize() const
 {
-    return _army.friendly.size();
+    return army.friendly.size();
 }
 
+// © Alberto Uriarte
 int GameState::getEnemyGroupsSize() const
 {
-    return _army.enemy.size();
+    return army.enemy.size();
 }
 
+// © Alberto Uriarte
 int GameState::getFriendlyUnitsSize() const
 {
     int size = 0;
-    for (const auto& unitGroup : _army.friendly) {
+    for (const auto& unitGroup : army.friendly) {
         size += unitGroup->numUnits;
     }
     return size;
 }
 
+// © Alberto Uriarte
 int GameState::getEnemyUnitsSize() const
 {
     int size = 0;
-    for (const auto& unitGroup : _army.enemy) {
+    for (const auto& unitGroup : army.enemy) {
         size += unitGroup->numUnits;
     }
     return size;
 }
 
+// © Alberto Uriarte
 void GameState::loadIniConfig()
 {
     std::string iniBuilding = LoadConfigString("high_level_search", "buildings", "RESOURCE_DEPOT");
-    if (iniBuilding == "NONE") {
-        _buildingTypes = NoneBuilding;
-    } else if (iniBuilding == "ALL") {
-        _buildingTypes = AllBuildings;
-    } else {
-        _buildingTypes = ResourceDepot;
-    }
+    if (iniBuilding == "NONE")     { buildingTypes = NoneBuilding; }
+    else if (iniBuilding == "ALL") { buildingTypes = AllBuildings; }
+    else                           { buildingTypes = ResourceDepot; }
 }
 
-/*
+/* this will be implemented later to enchance functionality
+// © Alberto Uriarte
 void GameState::importCurrentGameState()
 {
     cleanArmyData();
-    _time = Broodwar->getFrameCount();
+    time = Broodwar->getFrameCount();
     unitGroupVector* armySide;
 
     for (auto player : Broodwar->getPlayers()) {
         if (player->isNeutral()) continue;
-        else if (_army.friendly.empty()) armySide = &_army.friendly;
-        else armySide = &_army.enemy;
+        else if (army.friendly.empty()) armySide = &army.friendly;
+        else armySide = &army.enemy;
 
         for (auto unit : player->getUnits()) {
-            // ignore buildings (except _buildingTypes)
-            if ((_buildingTypes == ResourceDepot) && unit->getType().isBuilding() && !unit->getType().isResourceDepot() ) continue;
+            // ignore buildings (except buildingTypes)
+            if ((buildingTypes == ResourceDepot) && unit->getType().isBuilding() && !unit->getType().isResourceDepot() ) continue;
             // ignore units training
             if (!unit->isCompleted()) continue;
             if (unit->getType().isWorker()) continue;
             // ignore spells
             if (unit->getType().isSpell()) continue;
 
-            uint8_t regionId = informationManager->_regionIdMap[unit->getTilePosition().x][unit->getTilePosition().y];
+            uint8_t regionId = informationManager->regionIdMap[unit->getTilePosition().x][unit->getTilePosition().y];
             uint8_t orderId = abstractOrder::Unknown;
             if (unit->getType().isBuilding()) orderId = abstractOrder::Nothing;
             float unitHP = unit->getHitPoints() + unit->getShields();
-            unitGroup_t* unitGroup = new unitGroup_t(unit->getType().getID(), 1, regionId, orderId, 0, _time, unitHP);
+            unitGroup_t* unitGroup = new unitGroup_t(unit->getType().getID(), 1, regionId, orderId, 0, time, unitHP);
 
             addUnitToArmySide(unitGroup, *armySide);
         }
@@ -180,6 +169,7 @@ void GameState::importCurrentGameState()
 //     ordersSanityCheck();
 }*/
 
+// © me & Alberto Uriarte
 // returns the unitGroup_t* where the unit was added
 unsigned short GameState::addUnitToArmySide(unitGroup_t* unit, unitGroupVector& armySide)
 {
@@ -198,9 +188,9 @@ unsigned short GameState::addUnitToArmySide(unitGroup_t* unit, unitGroupVector& 
             unit->regionId == armySide[i]->regionId &&
             unit->orderId == armySide[i]->orderId &&
             unit->targetRegionId == armySide[i]->targetRegionId) {
-            
+
             armySide[i]->numUnits++;
-            // update avg hp 
+            // update avg hp
             armySide[i]->HP += (unit->HP - armySide[i]->HP) / armySide[i]->numUnits;
             delete unit;
             return i;
@@ -211,134 +201,126 @@ unsigned short GameState::addUnitToArmySide(unitGroup_t* unit, unitGroupVector& 
     return armySide.size() - 1;
 }
 
+// © me & Alberto Uriarte
 // assumes army.enmey is empty
 void GameState::addAllEnemyUnits()
 {
-    _time = Broodwar->getFrameCount();
-
+    time = Broodwar->getFrameCount();
     for (auto unit : Broodwar->enemy()->getUnits()) {
-        // ignore buildings (except _buildingTypes)
-        if ((_buildingTypes == ResourceDepot) && unit->getType().isBuilding() && !unit->getType().isResourceDepot() ) continue;
-        // ignore units training
-        if (!unit->isCompleted()) continue;
-        if (unit->getType().isWorker()) continue;
-        // ignore spells
-        if (unit->getType().isSpell()) continue;
+        const auto& unitType = unit->getType();
+        // ignore buildings (except buildingTypes)
+        if ((buildingTypes == ResourceDepot) && unitType.isBuilding() && !unitType.isResourceDepot() ) continue;
+        // ignore units training & worker & spells
+        if (!unit->isCompleted() && unitType.isWorker() && unitType.isSpell()) { continue; }
 
-        uint8_t regionId = _regman->_regionIdMap[unit->getTilePosition().x][unit->getTilePosition().y];
+        uint8_t regionId = regman->regionIdMap[unit->getTilePosition().x][unit->getTilePosition().y];
         uint8_t orderId = abstractOrder::Unknown;
-        if (unit->getType().isBuilding()) orderId = abstractOrder::Nothing;
+        if (unitType.isBuilding()) orderId = abstractOrder::Nothing;
         float unitHP = unit->getHitPoints() + unit->getShields();
-        unitGroup_t* unitGroup = new unitGroup_t(unit->getType().getID(), 1, regionId, orderId, 0, _time, unitHP);
+        unitGroup_t* unitGroup = new unitGroup_t(unitType.getID(), 1, regionId, orderId, 0, time, unitHP);
 
-        addUnitToArmySide(unitGroup, _army.enemy);
+        addUnitToArmySide(unitGroup, army.enemy);
     }
 }
 
+// © me & Alberto Uriarte
 void GameState::addSelfBuildings()
 {
     for (auto unit : Broodwar->self()->getUnits()) {
-        if ( !unit->getType().isBuilding() ) continue;
-        if ( _buildingTypes == ResourceDepot && !unit->getType().isResourceDepot() ) continue;
+        const auto& unitType = unit->getType();
+        if ( !unitType.isBuilding() ) continue;
+        if ( buildingTypes == ResourceDepot && !unitType.isResourceDepot() ) continue;
 
-        uint8_t regionId = _regman->_regionIdMap[unit->getTilePosition().x][unit->getTilePosition().y];
+        uint8_t regionId = regman->regionIdMap[unit->getTilePosition().x][unit->getTilePosition().y];
         float unitHP = unit->getHitPoints() + unit->getShields();
-        unitGroup_t* unitGroup = new unitGroup_t(unit->getType().getID(), 1, regionId, abstractOrder::Nothing, 0, _time, unitHP);
+        unitGroup_t* unitGroup = new unitGroup_t(unitType.getID(), 1, regionId, abstractOrder::Nothing, 0, time, unitHP);
 
-        addUnitToArmySide(unitGroup, _army.friendly);
+        addUnitToArmySide(unitGroup, army.friendly);
     }
 }
 
+// © me & Alberto Uriarte
 unsigned short GameState::addFriendlyUnit(Unit unit)
 {
-        uint8_t regionId = _regman->_regionIdMap[unit->getTilePosition().x][unit->getTilePosition().y];
-        float unitHP = unit->getHitPoints() + unit->getShields();
-        unitGroup_t* unitGroup = new unitGroup_t(unit->getType().getID(), 1, regionId, abstractOrder::Unknown, 0, _time, unitHP);
+    uint8_t regionId = regman->regionIdMap[unit->getTilePosition().x][unit->getTilePosition().y];
+    float unitHP = unit->getHitPoints() + unit->getShields();
+    unitGroup_t* unitGroup = new unitGroup_t(unit->getType().getID(), 1, regionId, abstractOrder::Unknown, 0, time, unitHP);
 
-        return addUnitToArmySide(unitGroup, _army.friendly);
+    return addUnitToArmySide(unitGroup, army.friendly);
 }
 
+// © me & Alberto Uriarte
 void GameState::addGroup(int unitId, int numUnits, int regionId, int listID, float groupHP, int orderId, int targetRegion, int endFrame)
 {
-
-    // simplify unitTypeId
-//     if (unitId == UnitTypes::Terran_Siege_Tank_Siege_Mode) {
-//         unitId = UnitTypes::Terran_Siege_Tank_Tank_Mode;
-//     }
-    // commented since this is only called for testing using the GUI
-
     UnitType unitType(unitId);
     if (unitType.isAddon() || unitType.isSpell()) return;
 
     if (unitType.isBuilding()) orderId = abstractOrder::Nothing;
-    unitGroup_t* unitGroup = new unitGroup_t(unitId, numUnits, regionId, orderId, targetRegion, endFrame, _time, groupHP);
+    unitGroup_t* unitGroup = new unitGroup_t(unitId, numUnits, regionId, orderId, targetRegion, endFrame, time, groupHP);
 
     if (listID == 1) {
-        _army.friendly.push_back(unitGroup);
+        army.friendly.push_back(unitGroup);
     } else if (listID == 2) {
-        _army.enemy.push_back(unitGroup);
+        army.enemy.push_back(unitGroup);
     }
 }
 
+// © me & Alberto Uriarte
 void GameState::addUnit(int unitId, int regionId, int listID, int orderId, float unitHP)
 {
     UnitType unitType(unitId);
     if (unitType.isAddon() || unitType.isSpell()) return;
 
     if (unitType.isBuilding()) orderId = abstractOrder::Nothing;
-    unitGroup_t* unitGroup = new unitGroup_t(unitId, 1, regionId, orderId, 0, _time, unitHP);
+    unitGroup_t* unitGroup = new unitGroup_t(unitId, 1, regionId, orderId, 0, time, unitHP);
 
     if (listID == 1) {
-        addUnitToArmySide(unitGroup, _army.friendly);
+        addUnitToArmySide(unitGroup, army.friendly);
     } else if (listID == 2) {
-        addUnitToArmySide(unitGroup, _army.enemy);
+        addUnitToArmySide(unitGroup, army.enemy);
     }
 }
 
-
-
+// © me & Alberto Uriarte
 // Calculate the expected end frame for each order
 void GameState::calculateExpectedEndFrameForAllGroups()
 {
-    _regionsInCombat.clear();
+    regionsInCombat.clear();
     unitGroupVector* armySide;
 
-    for (int i = 0; i<2; ++i) {
-        if (i == 0) armySide = &_army.friendly;
-        else armySide = &_army.enemy;
+    for (int i = 0; i < 2; ++i) {
+        if (i == 0) { armySide = &army.friendly; }
+        else { armySide = &army.enemy; }
 
         for (auto& unitGroup : *armySide) {
             switch (unitGroup->orderId) {
-            case abstractOrder::Move:
-                unitGroup->endFrame = _time + getMoveTime(unitGroup->unitTypeId, unitGroup->regionId, unitGroup->targetRegionId);
-                break;
-            case abstractOrder::Attack:
-                _regionsInCombat.insert(unitGroup->regionId); // keep track of the regions with units in attack state
-                break;
-            case abstractOrder::Nothing: // it's a building
-                unitGroup->endFrame = _time + NOTHING_TIME;
-                break;
-            case abstractOrder::Unknown:
-            default:
-                unitGroup->endFrame = _time + IDLE_TIME;
-                break;
+                case abstractOrder::Move:
+                    unitGroup->endFrame = time + getMoveTime(unitGroup->unitTypeId, unitGroup->regionId, unitGroup->targetRegionId);
+                    break;
+                case abstractOrder::Attack:
+                    regionsInCombat.insert(unitGroup->regionId); // keep track of the regions with units in attack state
+                    break;
+                case abstractOrder::Nothing: // it's a building
+                    unitGroup->endFrame = time + NOTHING_TIME;
+                    break;
+                case abstractOrder::Unknown:
+                default:
+                    unitGroup->endFrame = time + IDLE_TIME;
+                    break;
             }
         }
     }
-
 #ifdef _DEBUG
     sanityCheck();
 #endif
-
-    for (const auto& regionId : _regionsInCombat) calculateCombatLengthAtRegion(regionId);
+    for (const auto& regionId : regionsInCombat) { calculateCombatLengthAtRegion(regionId); }
 }
 
+// © me & Alberto Uriarte
 int GameState::getMoveTime(int unitTypeId, int regionId, int targetRegionId)
 {
-    if (regionId == targetRegionId) return 0;
-
+    if (regionId == targetRegionId) { return 0; }
     // auto-unsiege tanks
-    // TODO warning we don't consider unsiege time
     if (unitTypeId == UnitTypes::Terran_Siege_Tank_Siege_Mode) {
         unitTypeId = UnitTypes::Terran_Siege_Tank_Tank_Mode;
     }
@@ -346,7 +328,7 @@ int GameState::getMoveTime(int unitTypeId, int regionId, int targetRegionId)
     double speed = unitType.topSpeed(); //non-upgraded top speed in pixels per frame
     int distance = getRegionDistance(regionId, targetRegionId); // distance in pixels
 
-    int timeToMove = (int)((double)distance / speed);
+    int timeToMove = distance / speed;
     if (timeToMove == INT_MAX || timeToMove < 0) {
         DEBUG("Wrong move time: " << timeToMove << " traveling from " << regionId << " to " << targetRegionId);
         DEBUG(toString());
@@ -354,114 +336,98 @@ int GameState::getMoveTime(int unitTypeId, int regionId, int targetRegionId)
     return timeToMove;
 }
 
-// TODO move this to BWTA
 int GameState::getRegionDistance(int regId1, int regId2)
 {
-    /* assumed no chokes
-    
-    if (!_onlyRegions) {
-        if (regId1 < _chokepointIdOffset) {
-            // regId1 is a region, and regId2 a chokepoint
-            return _distanceBetweenRegAndChoke[regId1][regId2];
-        } else {
-            // regId1 is a chokepoint, and regId2 a region
-            return _distanceBetweenRegAndChoke[regId2][regId1];
-        }
-    } else {
-    */
-    //LOG("Distance from " << regId1 << " to " << regId2 << " = " << informationManager->_distanceBetweenRegions[regId1][regId2]);
-        return _regman->_distanceBetweenRegions[regId1][regId2];
-    //}
+    return regman->distanceBetweenRegions[regId1][regId2];
 }
 
+// © Alberto Uriarte
 int GameState::getAbstractOrderID(int orderId, int currentRegion, int targetRegion)
 {
-     if ( orderId == BWAPI::Orders::MoveToMinerals ||
-         orderId == BWAPI::Orders::WaitForMinerals ||
-         orderId == BWAPI::Orders::MiningMinerals ||
-         orderId == BWAPI::Orders::Harvest3 ||
-         orderId == BWAPI::Orders::Harvest4 ||
-          orderId == BWAPI::Orders::ReturnMinerals )
-        //return abstractOrder::Mineral;
+    if (orderId == BWAPI::Orders::MoveToMinerals ||
+        orderId == BWAPI::Orders::WaitForMinerals ||
+        orderId == BWAPI::Orders::MiningMinerals ||
+        orderId == BWAPI::Orders::Harvest3 ||
+        orderId == BWAPI::Orders::Harvest4 ||
+        orderId == BWAPI::Orders::ReturnMinerals)
         return abstractOrder::Unknown;
-     else if ( orderId == BWAPI::Orders::MoveToGas ||
-              orderId == BWAPI::Orders::Harvest1 ||
-              orderId == BWAPI::Orders::Harvest2 ||
-              orderId == BWAPI::Orders::WaitForGas ||
-              orderId == BWAPI::Orders::HarvestGas ||
-               orderId == BWAPI::Orders::ReturnGas )
-         //return abstractOrder::Gas;
+    else if (orderId == BWAPI::Orders::MoveToGas ||
+             orderId == BWAPI::Orders::Harvest1 ||
+             orderId == BWAPI::Orders::Harvest2 ||
+             orderId == BWAPI::Orders::WaitForGas ||
+             orderId == BWAPI::Orders::HarvestGas ||
+             orderId == BWAPI::Orders::ReturnGas )
         return abstractOrder::Unknown;
-    else if ( orderId == BWAPI::Orders::Move ||
-              orderId == BWAPI::Orders::Follow ||
-              orderId == BWAPI::Orders::ComputerReturn ) 
-        return abstractOrder::Move;
-    else if ( orderId == BWAPI::Orders::AttackUnit ||
-              orderId == BWAPI::Orders::AttackMove ||
-              orderId == BWAPI::Orders::AttackTile)
-          if (currentRegion == targetRegion) return abstractOrder::Attack;
-          else return abstractOrder::Move;
-    else if ( orderId == BWAPI::Orders::Repair || 
-              orderId == BWAPI::Orders::MedicHeal )
-            return abstractOrder::Heal;
-    else if ( orderId == BWAPI::Orders::Nothing )
-            return abstractOrder::Nothing;
+    else if (orderId == BWAPI::Orders::Move ||
+             orderId == BWAPI::Orders::Follow ||
+             orderId == BWAPI::Orders::ComputerReturn )
+         return abstractOrder::Move;
+    else if (orderId == BWAPI::Orders::AttackUnit ||
+             orderId == BWAPI::Orders::AttackMove ||
+             orderId == BWAPI::Orders::AttackTile)
+        if (currentRegion == targetRegion) return abstractOrder::Attack;
+        else return abstractOrder::Move;
+    else if (orderId == BWAPI::Orders::Repair ||
+             orderId == BWAPI::Orders::MedicHeal )
+        return abstractOrder::Heal;
+    else if (orderId == BWAPI::Orders::Nothing)
+        return abstractOrder::Nothing;
     else {
-        //LOG("Not detected action " << BWAPI::Order(orderId).getName() << " id: " << orderId);
         return abstractOrder::Unknown;
     }
 }
 
+// © Alberto Uriarte
 std::string GameState::getAbstractOrderName(BWAPI::Order order, int currentRegion, int targetRegion)
 {
     int abstractId = getAbstractOrderID(order.getID(), currentRegion, targetRegion);
     return abstractOrder::name[abstractId];
 }
 
+// © Alberto Uriarte
 std::string GameState::getAbstractOrderName(int abstractId) const
 {
     return abstractOrder::name[abstractId];
 }
 
+// © me & Alberto Uriarte
 std::string GameState::toString() const
 {
     std::stringstream tmp;
-    tmp << "GameState: time " << _time << " ====================================\n";
-    tmp << std::setw(5) << "Type" << std::setw(4) << "Num" << std::setw(4) << "Reg" 
-        << std::setw(8) << "Order" << std::setw(6) << "toReg" << std::setw(9) << "EndFrame" 
-        << std::setw(5) << "HP" << " " << "Unit name" << std::endl;
-    for (const auto& group : _army.friendly) {
-        tmp << std::setw(5) << intToString(group->unitTypeId)
-        << std::setw(4) << intToString(group->numUnits)
-        << std::setw(4) << intToString(group->regionId)
-        << std::setw(8) << getAbstractOrderName(group->orderId)
-        << std::setw(6) << intToString(group->targetRegionId)
-        << std::setw(9) << intToString(group->endFrame - _time)
-        << std::setw(5) << intToString(group->HP)
-        << " " << BWAPI::UnitType(group->unitTypeId).getName() << std::endl;
-    }
-    tmp << "(up)FRIENDS---------------ENEMIES(down)\n";
-    for (const auto& group : _army.enemy) {
+    tmp << "GameState: time " << time << " ====================================\n";
+    tmp << "Type Num Reg Order toReg EndFrame HP Unit name" << std::endl;
+    for (const auto& group : army.friendly) {
         tmp << std::setw(5) << intToString(group->unitTypeId)
             << std::setw(4) << intToString(group->numUnits)
             << std::setw(4) << intToString(group->regionId)
             << std::setw(8) << getAbstractOrderName(group->orderId)
             << std::setw(6) << intToString(group->targetRegionId)
-            << std::setw(9) << intToString(group->endFrame - _time)
+            << std::setw(9) << intToString(group->endFrame - time)
             << std::setw(5) << intToString(group->HP)
             << " " << BWAPI::UnitType(group->unitTypeId).getName() << std::endl;
     }
-
+    tmp << "(up)FRIENDS---------------ENEMIES(down)\n";
+    for (const auto& group : army.enemy) {
+        tmp << std::setw(5) << intToString(group->unitTypeId)
+            << std::setw(4) << intToString(group->numUnits)
+            << std::setw(4) << intToString(group->regionId)
+            << std::setw(8) << getAbstractOrderName(group->orderId)
+            << std::setw(6) << intToString(group->targetRegionId)
+            << std::setw(9) << intToString(group->endFrame - time)
+            << std::setw(5) << intToString(group->HP)
+            << " " << BWAPI::UnitType(group->unitTypeId).getName() << std::endl;
+    }
     return tmp.str();
 }
 
+// © me & Alberto Uriarte
 // checks ending frame of the current game state, supervise the regions in combat
 void GameState::execute(const playerActions_t &playerActions, bool player)
 {
     ordersSanityCheck();
     unitGroupVector* armySide;
-    if (player) armySide = &_army.friendly;
-    else armySide = &_army.enemy;
+    if (player) { armySide = &army.friendly; }
+    else        { armySide = &army.enemy; }
 
     uint8_t orderId;
     uint8_t targetRegionId;
@@ -492,119 +458,116 @@ void GameState::execute(const playerActions_t &playerActions, bool player)
             LOG(toString());
         }
 #endif
-
         unitGroup->orderId = orderId;
         unitGroup->targetRegionId = targetRegionId;
-        unitGroup->startFrame = _time;
+        unitGroup->startFrame = time;
 
         switch (orderId) {
-        case abstractOrder::Move:
-            timeToMove = getMoveTime(unitGroup->unitTypeId, unitGroup->regionId, targetRegionId);
-            unitGroup->endFrame = _time + timeToMove;
-            break;
-        case abstractOrder::Attack:
-            // keep track of the regions with units in attack state
-            _regionsInCombat.insert(unitGroup->regionId);
-            computeCombatLengthIn.insert(unitGroup->regionId);
-            break;
-        case abstractOrder::Nothing: // for buildings
-            unitGroup->endFrame = _time + NOTHING_TIME;
-            break;
-        default: // Unknown or Idle
-            unitGroup->endFrame = _time + IDLE_TIME;
-            break;
+            case abstractOrder::Move:
+                timeToMove = getMoveTime(unitGroup->unitTypeId, unitGroup->regionId, targetRegionId);
+                unitGroup->endFrame = time + timeToMove;
+                break;
+            case abstractOrder::Attack:
+                // keep track of the regions with units in attack state
+                regionsInCombat.insert(unitGroup->regionId);
+                computeCombatLengthIn.insert(unitGroup->regionId);
+                break;
+            case abstractOrder::Nothing: // for buildings
+                unitGroup->endFrame = time + NOTHING_TIME;
+                break;
+            default: // Unknown or Idle
+                unitGroup->endFrame = time + IDLE_TIME;
+                break;
         }
-
     }
-
     // if we have new attack actions, compute the combat length
-    for (const auto& regionId : computeCombatLengthIn) calculateCombatLengthAtRegion(regionId);
-
+    for (const auto& regionId : computeCombatLengthIn) { calculateCombatLengthAtRegion(regionId); }
 #if _DEBUG
     ordersSanityCheck();
 #endif
 }
 
-void GameState::calculateCombatLengthAtRegion(int regionId) 
+// © Alberto Uriarte
+void GameState::calculateCombatLengthAtRegion(int regionId)
 {
     army_t groupsInRegion(getGroupsInRegion(regionId));
-
 #ifdef _DEBUG
     if (groupsInRegion.friendly.empty() || groupsInRegion.enemy.empty()) {
         DEBUG("Starting a combat where no adversarial groups");
     }
 #endif
-
     calculateCombatLength(groupsInRegion);
 }
 
+// © me & Alberto Uriarte
 void GameState::calculateCombatLength(army_t& army)
 {
     int combatLenght = cs->getCombatLength(&army);
-
 #ifdef _DEBUG
     if (combatLenght == INT_MAX) {
         DEBUG("Infinit combat lenght at region " << (int)army.enemy[0]->regionId);
         LOG(toString());
     }
 #endif
-
-    int combatEnd = combatLenght + _time;
+    int combatEnd = combatLenght + time;
 #ifdef _DEBUG
-    if (combatEnd < 0 || combatEnd < _time) {
+    if (combatEnd < 0 || combatEnd < time) {
         LOG("Combat lenght overflow");
     }
 #endif
-
     // update end combat time for each unit attacking in this region
     for (auto unitGroup : army.friendly) updateCombatLenght(unitGroup, combatEnd);
     for (auto unitGroup : army.enemy) updateCombatLenght(unitGroup, combatEnd);
 }
 
+// © Alberto Uriarte
 GameState::army_t GameState::getGroupsInRegion(int regionId)
 {
     army_t groupsInRegion;
-    for (const auto& unitGroup : _army.friendly){
+    for (const auto& unitGroup : army.friendly){
         if (unitGroup->regionId == regionId) groupsInRegion.friendly.emplace_back(unitGroup);
     }
-    for (const auto& unitGroup : _army.enemy){
+    for (const auto& unitGroup : army.enemy){
         if (unitGroup->regionId == regionId) groupsInRegion.enemy.emplace_back(unitGroup);
     }
     return groupsInRegion;
 }
 
+// © Alberto Uriarte
 void GameState::updateCombatLenght(unitGroup_t* group, int combatWillEndAtFrame)
 {
     if (group->orderId == abstractOrder::Attack) {
-        group->startFrame = _time;
+        group->startFrame = time;
         group->endFrame = combatWillEndAtFrame;
     }
 }
 
+// © Alberto Uriarte
 void GameState::setAttackOrderToIdle(unitGroupVector &myArmy)
 {
     for (auto unitGroup : myArmy) {
         if (unitGroup->orderId == abstractOrder::Attack) {
             unitGroup->orderId = abstractOrder::Idle;
-            unitGroup->endFrame = _time;
+            unitGroup->endFrame = time;
         }
     }
 }
 
-// has time to execute action
+// © Alberto Uriarte
+// has time to execute all actions
 bool GameState::canExecuteAnyAction(bool player) const
 {
     const unitGroupVector *armySide;
-    if (player) armySide = &_army.friendly;
-    else armySide = &_army.enemy;
+    if (player) { armySide = &army.friendly; }
+    else        { armySide = &army.enemy; }
 
     for (const auto& groupUnit : *armySide) {
-        if (groupUnit->endFrame <= _time) return true;
+        if (groupUnit->endFrame <= time) { return true; }
     }
-
     return false;
 }
 
+// © me & Alberto Uriarte
 // Move forward the game state until the first unit finish its action (might delete unitGroup_t*)
 void GameState::moveForward(int forwardTime)
 {
@@ -616,46 +579,48 @@ void GameState::moveForward(int forwardTime)
     sanityCheck();
 #endif
     unitGroupVector* armySide;
-    bool moveUntilFinishAnAction = (forwardTime == 0);
+    bool moveUntilFinishAnAction = !forwardTime;
 
     if (moveUntilFinishAnAction) {
         forwardTime = INT_MAX;
         // search the first action to finish
-        for (const auto& unitGroup : _army.friendly) forwardTime = std::min(forwardTime, unitGroup->endFrame);
-        for (const auto& unitGroup : _army.enemy)    forwardTime = std::min(forwardTime, unitGroup->endFrame);
+        for (const auto& unitGroup : army.friendly) forwardTime = std::min(forwardTime, unitGroup->endFrame);
+        for (const auto& unitGroup : army.enemy)    forwardTime = std::min(forwardTime, unitGroup->endFrame);
     }
 
     // forward the time of the game state to the first action to finish
-    int timeStep = forwardTime - _time;
-    _time = forwardTime;
+    int timeStep = forwardTime - time;
+    time = forwardTime;
 
     // update finished actions
     // ############################################################################################
     std::set<int> simulateCombatIn; // set because we don't want duplicates
     std::set<int> simulatePartialCombatIn; // set because we don't want duplicates
     std::map<int, army_t> unitGroupWasAtRegion, unitGroupWasNotAtRegion;
-    for (int i = 0; i<2; ++i) {
-        if (i == 0) armySide = &_army.friendly;
-        else armySide = &_army.enemy;
+    for (int i = 0; i < 2; ++i) {
+        if (i == 0) { armySide = &army.friendly; }
+        else        { armySide = &army.enemy; }
         for (const auto& unitGroup : *armySide) {
-            if (unitGroup->endFrame <= _time) {
+            if (unitGroup->endFrame <= time) {
                 if (unitGroup->orderId == abstractOrder::Move) {
-                    int fromRegionId = (int)unitGroup->regionId;
-                    int toRegionId = (int)unitGroup->targetRegionId;
+                    int fromRegionId = unitGroup->regionId;
+                    int toRegionId = unitGroup->targetRegionId;
                     // if we are moving to/from a region in combat we need to forward the combat time
-                    if (_regionsInCombat.find(fromRegionId) != _regionsInCombat.end()) {
+                    if (regionsInCombat.find(fromRegionId) != regionsInCombat.end()) {
                         simulatePartialCombatIn.insert(fromRegionId);
                         if (i == 0) {
                             unitGroupWasAtRegion[fromRegionId].friendly.push_back(unitGroup);
-                        } else {
+                        }
+                        else {
                             unitGroupWasAtRegion[fromRegionId].enemy.push_back(unitGroup);
                         }
                     }
-                    if (_regionsInCombat.find(toRegionId) != _regionsInCombat.end()) {
+                    if (regionsInCombat.find(toRegionId) != regionsInCombat.end()) {
                         simulatePartialCombatIn.insert(toRegionId);
                         if (i == 0) {
                             unitGroupWasNotAtRegion[toRegionId].friendly.push_back(unitGroup);
-                        } else {
+                        }
+                        else {
                             unitGroupWasNotAtRegion[toRegionId].enemy.push_back(unitGroup);
                         }
                     }
@@ -683,19 +648,15 @@ void GameState::moveForward(int forwardTime)
         // sometimes our target moved away
         if (!groupsInCombat.friendly.empty() && !groupsInCombat.enemy.empty() && hasTargetableEnemy(groupsInCombat)) {
             combatsSimulated++;
-            cs->simulateCombat(&groupsInCombat, &_army);
+            cs->simulateCombat(&groupsInCombat, &army);
         }
-        _regionsInCombat.erase(regionId);
+        regionsInCombat.erase(regionId);
     }
-// #ifdef _DEBUG
-//     sanityCheck();
-// #endif
-
     // simulate NOT FINISHED combat in regions (because one unit left/arrive to the region)
     // ############################################################################################
     for (auto& regionId : simulatePartialCombatIn) {
         // sometimes we left/arrive when the battle is over
-        if (_regionsInCombat.find(regionId) == _regionsInCombat.end()) continue;
+        if (regionsInCombat.find(regionId) == regionsInCombat.end()) continue;
         army_t groupsInCombat = getGroupsInRegion(regionId);
         // we need to ADD unitGroups that were in the region
         for (auto& unitGroup : unitGroupWasAtRegion[regionId].friendly) groupsInCombat.friendly.push_back(unitGroup);
@@ -708,14 +669,13 @@ void GameState::moveForward(int forwardTime)
             groupsInCombat.enemy.erase(std::remove(groupsInCombat.enemy.begin(), groupsInCombat.enemy.end(), unitGroup), groupsInCombat.enemy.end());
         }
         // simulate
-        int combatSeps = _time - getCombatStartedFrame(groupsInCombat);
+        int combatSeps = time - getCombatStartedFrame(groupsInCombat);
 #ifdef _DEBUG
         combatUnitExistSanityCheck(groupsInCombat);
         GameState gameCopy(*this); // to check the state before simulating the combat
 #endif
         combatsSimulated++;
-        cs->simulateCombat(&groupsInCombat, &_army, std::max(combatSeps, timeStep));
-
+        cs->simulateCombat(&groupsInCombat, &army, std::max(combatSeps, timeStep));
 #ifdef _DEBUG
         combatUnitExistSanityCheck(getGroupsInRegion(regionId));
         ordersSanityCheck();
@@ -723,7 +683,6 @@ void GameState::moveForward(int forwardTime)
         if (print) LOG(gameCopy.toString());
 #endif
     }
-
     // update partial combat times
     for (auto& regionId : simulatePartialCombatIn) {
         army_t groupsSurvived = getGroupsInRegion(regionId);
@@ -734,11 +693,9 @@ void GameState::moveForward(int forwardTime)
         } else { // else set attack groups to IDLE
             setAttackOrderToIdle(groupsSurvived.friendly);
             setAttackOrderToIdle(groupsSurvived.enemy);
-            _regionsInCombat.erase(regionId);
+            regionsInCombat.erase(regionId);
         }
     }
-
-
 #ifdef _DEBUG
     sanityCheck();
 #endif
@@ -763,12 +720,12 @@ void GameState::moveForward(int forwardTime)
     }
     sanityCheck();
 #endif
-    
 }
 
+// © Alberto Uriarte
 int GameState::getCombatStartedFrame(const army_t& army)
 {
-    int combatStarted = _time;
+    int combatStarted = time;
     for (const auto& unitGroup : army.friendly) {
         if (unitGroup->orderId == abstractOrder::Attack && unitGroup->startFrame < combatStarted) {
             combatStarted = unitGroup->startFrame;
@@ -782,11 +739,13 @@ int GameState::getCombatStartedFrame(const army_t& army)
     return combatStarted;
 }
 
+// © Alberto Uriarte
 void GameState::mergeGroups() {
-    mergeGroup(_army.friendly);
-    mergeGroup(_army.enemy);
+    mergeGroup(army.friendly);
+    mergeGroup(army.enemy);
 }
 
+// © Alberto Uriarte
 void GameState::mergeGroup(unitGroupVector& armySide)
 {
     for (unitGroupVector::iterator it = armySide.begin(); it != armySide.end(); ++it) {
@@ -813,26 +772,25 @@ void GameState::mergeGroup(unitGroupVector& armySide)
     }
 }
 
+// © Alberto Uriarte
 int GameState::winner() const {
-    if (_army.friendly.empty() && _army.enemy.empty()) return -1;
-    if (_army.friendly.empty()) return 1;
-    if (_army.enemy.empty()) return 0;
+    if (army.friendly.empty() && army.enemy.empty()) return -1;
+    if (army.friendly.empty()) return 1;
+    if (army.enemy.empty()) return 0;
     return -1;
 }
 
+// © Alberto Uriarte
 bool GameState::gameover() const {
-    if (_army.friendly.empty() || _army.enemy.empty()) {
-        return true;
-    }
+    if (army.friendly.empty() || army.enemy.empty()) { return true; }
     // only buildings is also "gameover" (nothing to do)
-    if (hasOnlyBuildings(_army.friendly) && hasOnlyBuildings(_army.enemy)) {
-        return true;
-    }
+    if (hasOnlyBuildings(army.friendly) && hasOnlyBuildings(army.enemy)) { return true; }
 
     return false;
 }
 
-bool GameState::hasOnlyBuildings(unitGroupVector armySide) const {
+// © Alberto Uriarte
+bool GameState::hasOnlyBuildings(const unitGroupVector& armySide) const {
     for (const auto& unitGroup : armySide) {
         BWAPI::UnitType unitType(unitGroup->unitTypeId);
         if (!unitType.isBuilding()) return false;
@@ -840,58 +798,48 @@ bool GameState::hasOnlyBuildings(unitGroupVector armySide) const {
     return true;
 }
 
+// © Alberto Uriarte
 // copies current game state and advances it to the next state
-GameState GameState::cloneIssue(playerActions_t playerActions, bool player) const {
+GameState GameState::cloneIssue(const playerActions_t& playerActions, bool player) const {
     GameState nextGameState(*this);
     nextGameState.execute(playerActions, player);
     nextGameState.moveForward();
     return nextGameState;
 }
 
+// © Alberto Uriarte
 void GameState::resetFriendlyActions()
 {
-    for (auto& unitGroup : _army.friendly) {
+    for (auto& unitGroup : army.friendly) {
         // skip buildings
         BWAPI::UnitType unitType(unitGroup->unitTypeId);
-        if (unitType.isBuilding()) continue;
+        if (unitType.isBuilding()) { continue; }
 
-        unitGroup->endFrame = _time;
+        unitGroup->endFrame = time;
     }
 }
 
-// void GameState::autoSiegeTanksAtRegion(int regionId)
-// {
-//     if (friendlySiegeTankResearched) autoSiegeArmy(combats[regionId].friendly);
-//     if (enemySiegeTankResearched) autoSiegeArmy(combats[regionId].enemy);
-// }
-
-// void GameState::autoSiegeArmy(unitGroupVector &myArmy)
-// {
-//     for (auto& unitGroup : myArmy) {
-//         if (unitGroup->unitTypeId == UnitTypes::Terran_Siege_Tank_Tank_Mode) {
-//             unitGroup->unitTypeId = UnitTypes::Terran_Siege_Tank_Siege_Mode;
-//         }
-//     }
-// }
-
-void GameState::compareAllUnits(GameState gs, int &misplacedUnits, int &totalUnits)
+// © Alberto Uriarte
+void GameState::compareAllUnits(const GameState& gs, int &misplacedUnits, int &totalUnits)
 {
-    compareUnits(_army.friendly, gs._army.friendly, misplacedUnits, totalUnits);
-    compareUnits(_army.enemy, gs._army.enemy, misplacedUnits, totalUnits);
+    compareUnits(army.friendly, gs.army.friendly, misplacedUnits, totalUnits);
+    compareUnits(army.enemy, gs.army.enemy, misplacedUnits, totalUnits);
 }
 
-void GameState::compareFriendlyUnits(GameState gs, int &misplacedUnits, int &totalUnits)
+// © Alberto Uriarte
+void GameState::compareFriendlyUnits(const GameState& gs, int &misplacedUnits, int &totalUnits)
 {
-    compareUnits(_army.friendly, gs._army.friendly, misplacedUnits, totalUnits);
+    compareUnits(army.friendly, gs.army.friendly, misplacedUnits, totalUnits);
 }
 
-void GameState::compareEnemyUnits(GameState gs, int &misplacedUnits, int &totalUnits)
+// © Alberto Uriarte
+void GameState::compareEnemyUnits(const GameState& gs, int &misplacedUnits, int &totalUnits)
 {
-    compareUnits(_army.enemy, gs._army.enemy, misplacedUnits, totalUnits);
+    compareUnits(army.enemy, gs.army.enemy, misplacedUnits, totalUnits);
 }
 
-// TODO we are not considering units of the same type and region but with different orders!!
-void GameState::compareUnits(unitGroupVector units1, unitGroupVector units2, int &misplacedUnits, int &totalUnits)
+// © Alberto Uriarte
+void GameState::compareUnits(const unitGroupVector& units1, const unitGroupVector& units2, int& misplacedUnits, int& totalUnits)
 {
     bool match;
     for (auto groupUnit1 : units1) {
@@ -899,14 +847,14 @@ void GameState::compareUnits(unitGroupVector units1, unitGroupVector units2, int
         for (auto groupUnit2 : units2) {
             if (groupUnit1->unitTypeId == groupUnit2->unitTypeId && groupUnit1->regionId == groupUnit2->regionId) {
                 misplacedUnits += abs(groupUnit1->numUnits - groupUnit2->numUnits);
-                totalUnits += std::max(groupUnit1->numUnits, groupUnit2->numUnits);
+                totalUnits     += std::max(groupUnit1->numUnits, groupUnit2->numUnits);
                 match = true;
                 break; // we find it, stop looking for a match
             }
         }
         if (!match) {
             misplacedUnits += groupUnit1->numUnits;
-            totalUnits += groupUnit1->numUnits;
+            totalUnits     += groupUnit1->numUnits;
         }
     }
 
@@ -920,13 +868,13 @@ void GameState::compareUnits(unitGroupVector units1, unitGroupVector units2, int
         }
         if (!match) {
             misplacedUnits += groupUnit2->numUnits;
-            totalUnits += groupUnit2->numUnits;
+            totalUnits     += groupUnit2->numUnits;
         }
     }
 }
 
-// TODO we are not considering units of the same type and region but with different orders!!
-void GameState::compareUnits2(unitGroupVector units1, unitGroupVector units2, int &intersectionUnits, int &unionUnits)
+// © Alberto Uriarte
+void GameState::compareUnits2(const unitGroupVector& units1, const unitGroupVector& units2, int &intersectionUnits, int &unionUnits)
 {
     bool match;
     for (auto groupUnit1 : units1) {
@@ -939,11 +887,8 @@ void GameState::compareUnits2(unitGroupVector units1, unitGroupVector units2, in
                 break; // we find it, stop looking for a match
             }
         }
-        if (!match) {
-            unionUnits += groupUnit1->numUnits;
-        }
+        if (!match) { unionUnits += groupUnit1->numUnits; }
     }
-
     for (auto groupUnit2 : units2) {
         match = false;
         for (auto groupUnit1 : units1) {
@@ -952,67 +897,68 @@ void GameState::compareUnits2(unitGroupVector units1, unitGroupVector units2, in
                 break;
             }
         }
-        if (!match) {
-            unionUnits += groupUnit2->numUnits;
-        }
+        if (!match) { unionUnits += groupUnit2->numUnits; }
     }
 }
 
+// © Alberto Uriarte
 // returns the Jaccard index comparing all the units from the current game state against other game state
-float GameState::getJaccard(GameState gs) {
+float GameState::getJaccard(const GameState& gs) {
     int intersectionUnits = 0;
     int unionUnits = 0;
-    compareUnits2(_army.friendly, gs._army.friendly, intersectionUnits, unionUnits);
-    compareUnits2(_army.enemy, gs._army.enemy, intersectionUnits, unionUnits);
-    return unionUnits == 0 ? 1.0 : (float(intersectionUnits) / float(unionUnits));
+    compareUnits2(army.friendly, gs.army.friendly, intersectionUnits, unionUnits);
+    compareUnits2(army.enemy, gs.army.enemy, intersectionUnits, unionUnits);
+    return (unionUnits == 0 ? 1.0 : (float(intersectionUnits) / float(unionUnits)));
 }
 
+// © Alberto Uriarte
 // returns the Jaccard index using a quality measure
 // given a initialState we compare the "quality" of the current state and the other finalState
-float GameState::getJaccard2(GameState initialState, GameState finalState, bool useKillScore)
+float GameState::getJaccard2(const GameState& initialState, const GameState& finalState, bool useKillScore)
 {
     const double K = 1.0f;
 
     double intersectionSum = 0;
     double unionSum = 0;
 
-    compareUnitsWithWeight(initialState._army.friendly, K, useKillScore, _army.friendly, finalState._army.friendly, intersectionSum, unionSum);
-    compareUnitsWithWeight(initialState._army.enemy, K, useKillScore, _army.enemy, finalState._army.enemy, intersectionSum, unionSum);
+    compareUnitsWithWeight(initialState.army.friendly, K, useKillScore, army.friendly, finalState.army.friendly, intersectionSum, unionSum);
+    compareUnitsWithWeight(initialState.army.enemy, K, useKillScore, army.enemy, finalState.army.enemy, intersectionSum, unionSum);
 
     return unionSum == 0 ? 1.0 : float(intersectionSum / unionSum);
 }
 
+// © Alberto Uriarte
 // returns the prediction accuracy given a initialState and other finalState like us
-float GameState::getPredictionAccuracy(GameState initialState, GameState finalState)
+float GameState::getPredictionAccuracy(const GameState& initialState, const GameState& finalState)
 {
     // get total number of units from initialState
     int numUnitsInitialState = 0;
-    for (const auto& groupUnit : initialState._army.friendly) numUnitsInitialState += groupUnit->numUnits;
-    for (const auto& groupUnit : initialState._army.enemy) numUnitsInitialState += groupUnit->numUnits;
+    for (const auto& groupUnit : initialState.army.friendly) numUnitsInitialState += groupUnit->numUnits;
+    for (const auto& groupUnit : initialState.army.enemy) numUnitsInitialState += groupUnit->numUnits;
 
     // sum of difference in intersection
     int sumDiffIntersec = 0;
-    for (const auto& groupUnit1 : initialState._army.friendly) {
+    for (const auto& groupUnit1 : initialState.army.friendly) {
         // find intersection with our state (this)
-        int intersection1 = getUnitIntersection(groupUnit1, _army.friendly);
+        int intersection1 = getUnitIntersection(groupUnit1, army.friendly);
         // find intersection with other state (finalState)
-        int intersection2 = getUnitIntersection(groupUnit1, finalState._army.friendly);
+        int intersection2 = getUnitIntersection(groupUnit1, finalState.army.friendly);
         // accumulate the difference
         sumDiffIntersec += std::abs(intersection1 - intersection2);
     }
-    for (const auto& groupUnit1 : initialState._army.enemy) {
+    for (const auto& groupUnit1 : initialState.army.enemy) {
         // find intersection with our state (this)
-        int intersection1 = getUnitIntersection(groupUnit1, _army.enemy);
+        int intersection1 = getUnitIntersection(groupUnit1, army.enemy);
         // find intersection with other state (finalState)
-        int intersection2 = getUnitIntersection(groupUnit1, finalState._army.enemy);
+        int intersection2 = getUnitIntersection(groupUnit1, finalState.army.enemy);
         // accumulate the difference
         sumDiffIntersec += std::abs(intersection1 - intersection2);
     }
-
     // 1 - (sum of difference in intersection / initial union)
     return 1.0 - (float(sumDiffIntersec) / float(numUnitsInitialState));
 }
 
+// © Alberto Uriarte
 int GameState::getUnitIntersection(const unitGroup_t* groupUnit1, const unitGroupVector &groupUnitList)
 {
     int intersection = 0;
@@ -1024,12 +970,12 @@ int GameState::getUnitIntersection(const unitGroup_t* groupUnit1, const unitGrou
     return intersection;
 }
 
+// © Alberto Uriarte
 void GameState::compareUnitsWithWeight(unitGroupVector unitsWeight, const double K, bool useKillScore,
     unitGroupVector units1, unitGroupVector units2, double &intersectionUnits, double &unionUnits)
 {
     // get weights from the initialState
-    // weight = killscore * (1 / (n + k)) 
-
+    // weight = killscore * (1 / (n + k))
     std::map<uint8_t, double> weights;
     double score = 0.0;
     for (auto groupUnit : unitsWeight) {
@@ -1047,16 +993,13 @@ void GameState::compareUnitsWithWeight(unitGroupVector unitsWeight, const double
         for (auto groupUnit2 : units2) {
             if (groupUnit1->unitTypeId == groupUnit2->unitTypeId && groupUnit1->regionId == groupUnit2->regionId) {
                 intersectionUnits += (double)std::min(groupUnit1->numUnits, groupUnit2->numUnits) * weights[groupUnit1->unitTypeId];
-                unionUnits += (double)std::max(groupUnit1->numUnits, groupUnit2->numUnits) * weights[groupUnit1->unitTypeId];
+                unionUnits        += (double)std::max(groupUnit1->numUnits, groupUnit2->numUnits) * weights[groupUnit1->unitTypeId];
                 match = true;
                 break; // we find it, stop looking for a match
             }
         }
-        if (!match) {
-            unionUnits += groupUnit1->numUnits;
-        }
+        if (!match) { unionUnits += groupUnit1->numUnits; }
     }
-
     for (auto groupUnit2 : units2) {
         match = false;
         for (auto groupUnit1 : units1) {
@@ -1065,13 +1008,12 @@ void GameState::compareUnitsWithWeight(unitGroupVector unitsWeight, const double
                 break;
             }
         }
-        if (!match) {
-            unionUnits += (double)groupUnit2->numUnits  * weights[groupUnit2->unitTypeId];
-        }
+        if (!match) { unionUnits += (double)groupUnit2->numUnits  * weights[groupUnit2->unitTypeId]; }
     }
 }
 
-int GameState::getNextPlayerToMove(int &nextPlayerInSimultaneousNode) const
+// © me & Alberto Uriarte
+int GameState::getNextPlayerToMove(int& nextPlayerInSimultaneousNode) const
 {
     if (gameover()) return -1;
     int nextPlayer = -1;
@@ -1080,39 +1022,38 @@ int GameState::getNextPlayerToMove(int &nextPlayerInSimultaneousNode) const
             // if both can move: alternate
             nextPlayer = nextPlayerInSimultaneousNode;
             nextPlayerInSimultaneousNode = 1 - nextPlayerInSimultaneousNode;
-        } else {
-            nextPlayer = 1;
         }
-    } else {
-        if (canExecuteAnyAction(false)) nextPlayer = 0;
+        else { return 1; }
     }
-    return nextPlayer;
+    else if (canExecuteAnyAction(false)) { return 0; }
+    return nextPlayer; // has to be gameover
 }
 
+// © Alberto Uriarte
 // check if a unit listed in the combat list is still alive
 void GameState::combatUnitExistSanityCheck(army_t combatArmy)
 {
     for (const auto& unitGroup : combatArmy.friendly) {
-        auto groupFound = std::find(_army.friendly.begin(), _army.friendly.end(), unitGroup);
-        if (groupFound == _army.friendly.end()) {
+        auto groupFound = std::find(army.friendly.begin(), army.friendly.end(), unitGroup);
+        if (groupFound == army.friendly.end()) {
             DEBUG("UNIT DOES NOT EXIST");
-        } 
+        }
     }
 
     for (const auto& unitGroup : combatArmy.enemy) {
-        auto groupFound = std::find(_army.enemy.begin(), _army.enemy.end(), unitGroup);
-        if (groupFound == _army.enemy.end()) {
+        auto groupFound = std::find(army.enemy.begin(), army.enemy.end(), unitGroup);
+        if (groupFound == army.enemy.end()) {
             DEBUG("UNIT DOES NOT EXIST");
         }
     }
 }
 
+// © Alberto Uriarte
 void GameState::sanityCheck()
 {
     ordersSanityCheck();
-
     // check if regions in combat is still valid
-    for (const auto& regionId : _regionsInCombat) {
+    for (const auto& regionId : regionsInCombat) {
         army_t armyInCombat = getGroupsInRegion(regionId);
         if (armyInCombat.friendly.empty() || armyInCombat.enemy.empty()) {
             DEBUG("No opossing army");
@@ -1123,19 +1064,21 @@ void GameState::sanityCheck()
     }
 }
 
+// © Alberto Uriarte
 std::set<int> GameState::getArmiesRegionsIntersection() {
     std::set<int> result;
-    for (const auto& enemyGroup : _army.enemy){
-        for (const auto& friendlyGroup : _army.friendly){
+    for (const auto& enemyGroup : army.enemy){
+        for (const auto& friendlyGroup : army.friendly){
             if (friendlyGroup->regionId == enemyGroup->regionId) result.insert(enemyGroup->regionId);
         }
     }
     return result;
 }
 
+// © Alberto Uriarte
 bool GameState::hasAttackOrderAndTargetableEnemy(const army_t& army)
 {
-    for (const auto& group : army.friendly)
+    for (const auto& group : army.friendly) {
         if (group->orderId == abstractOrder::Attack) {
             for (const auto& group2 : army.enemy) {
                 if (group2->regionId == group->regionId &&
@@ -1144,7 +1087,8 @@ bool GameState::hasAttackOrderAndTargetableEnemy(const army_t& army)
                 }
             }
         }
-    for (const auto& group : army.enemy)
+    }
+    for (const auto& group : army.enemy) {
         if (group->orderId == abstractOrder::Attack) {
             for (const auto& group2 : army.friendly) {
                 if (group2->regionId == group->regionId &&
@@ -1153,9 +1097,11 @@ bool GameState::hasAttackOrderAndTargetableEnemy(const army_t& army)
                 }
             }
         }
+    }
     return false;
 }
 
+// © Alberto Uriarte
 bool GameState::hasTargetableEnemy(const army_t& army)
 {
     for (const auto& group : army.friendly) {
@@ -1177,14 +1123,15 @@ bool GameState::hasTargetableEnemy(const army_t& army)
     return false;
 }
 
+// © Alberto Uriarte
 void GameState::ordersSanityCheck()
 {
-    for (const auto& unitGroup : _army.friendly) {
+    for (const auto& unitGroup : army.friendly) {
         BWAPI::UnitType unitType(unitGroup->unitTypeId);
         if (unitType.isBuilding() && unitGroup->orderId != abstractOrder::Nothing) {
             DEBUG("Building with wrong order!!");
         }
-        if (unitGroup->endFrame < _time) {
+        if (unitGroup->endFrame < time) {
             DEBUG("Unit end frame action corrupted");
         }
         if (unitGroup->numUnits <= 0) {
