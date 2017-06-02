@@ -47,6 +47,7 @@ struct DPF_t
     // DPF if unit can attack both type of units (may use different weapons for each type)
     double bothAir;
     double bothGround;
+
     DPF_t()
     : air(0.0), ground(0.0), bothAir(0.0), bothGround(0.0)
     {}
@@ -57,6 +58,7 @@ struct HP_t
     uint16_t air;        // store the HP if the unit isFlyer
     uint16_t ground;    // store the HP if the unit isNotFlyer
     uint16_t any;        // store the HP regardless the unit's type
+
     HP_t()
     : air(0), ground(0), any(0)
     {}

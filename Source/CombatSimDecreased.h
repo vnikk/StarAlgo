@@ -34,16 +34,18 @@ private:
         double groundHP;
         double airHPextra;
         double groundHPextra;
-        combatStats_t() :airDPF(0.0), groundDPF(0.0), bothAirDPF(0.0), bothGroundDPF(0.0),
-            airHP(0.0), groundHP(0.0), airHPextra(0.0), groundHPextra(0.0){}
+
+        combatStats_t()
+        : airDPF(0.0), groundDPF(0.0), bothAirDPF(0.0), bothGroundDPF(0.0), airHP(0.0), groundHP(0.0), airHPextra(0.0), groundHPextra(0.0)
+        {}
     };
 
     std::vector<std::vector<double> >* unitTypeDPF;
 
-    void getCombatLength(const combatStats_t& friendStats, const combatStats_t& enemyStats);
-    void getExtraCombatLength(const combatStats_t& friendStats, const combatStats_t& enemyStats);
+    void          getCombatLength(const combatStats_t& friendStats, const combatStats_t& enemyStats);
+    void          getExtraCombatLength(const combatStats_t& friendStats, const combatStats_t& enemyStats);
     combatStats_t getCombatStats(const UnitGroupVector &army);
+    double        getTimeToKillUnit(const UnitGroupVector &unitsInCombat, uint8_t enemyType, float enemyHP, double &DPF);
 
-    double getTimeToKillUnit(const UnitGroupVector &unitsInCombat, uint8_t enemyType, float enemyHP, double &DPF);
     bool killUnit(UnitGroupVector::iterator &unitToKill, UnitGroupVector &unitsInCombat, UnitGroupVector* unitsList, float &HPsurvivor, float &HPkilled, double timeToKill, double DPF);
 };

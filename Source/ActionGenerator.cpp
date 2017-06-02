@@ -207,7 +207,7 @@ std::vector<int> ActionGenerator::getBiasChoices()
 {
     std::vector<int> randomChoices;
     randomChoices.reserve(choices.size());
-    for (int i = 0; i < choices.size(); ++i) {
+    for (size_t i = 0; i < choices.size(); ++i) {
 
         std::map<probName, uint8_t> posibleActions = getAllPosibleActions(choices[i].actions, myUnitsList->at(choices[i].pos));
         // select an action with probabilities learned
@@ -222,7 +222,7 @@ std::vector<int> ActionGenerator::getBiasChoices()
         std::uniform_real_distribution<double> uniformDist(0, 1);
         double randomProb = uniformDist(gen);
         double accumProb = 0.0;
-        for (int j = 0; j < choiceSizes[i]; ++j) {
+        for (size_t j = 0; j < choiceSizes[i]; ++j) {
             accumProb += probability[j];
             if (randomProb <= accumProb / totalProb) {
                 randomChoices.emplace_back(j);
@@ -246,7 +246,7 @@ std::vector<int> ActionGenerator::getBestChoices()
 {
     std::vector<int> bestChoices;
     bestChoices.reserve(choices.size());
-    for (int i = 0; i < choices.size(); ++i) {
+    for (size_t i = 0; i < choices.size(); ++i) {
         std::map<probName, uint8_t> posibleActions = getAllPosibleActions(choices[i].actions, myUnitsList->at(choices[i].pos));
         // select an action with probabilities learned
         std::vector<double> probability(choiceSizes[i]);
@@ -257,7 +257,7 @@ std::vector<int> ActionGenerator::getBestChoices()
         // get max probable choice
         double maxProb = 0.0;
         int maxChoiceIndex = -1;
-        for (int j = 0; j < choiceSizes[i]; ++j) {
+        for (size_t j = 0; j < choiceSizes[i]; ++j) {
             if (probability[j] > maxProb) {
                 maxProb = probability[j];
                 maxChoiceIndex = j;
@@ -592,7 +592,7 @@ playerActions_t ActionGenerator::getNextActionProbability(double& prob)
 {
     if (moreActions) {
 
-        for (int i = 0; i < choices.size(); ++i) {
+        for (size_t i = 0; i < choices.size(); ++i) {
             // get probability of all possible actions
             std::map<probName, uint8_t> posibleActions = getAllPosibleActions(choices[i].actions, myUnitsList->at(choices[i].pos));
 
