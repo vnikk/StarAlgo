@@ -119,7 +119,7 @@ double CombatSimDecreased::getTimeToKillUnit(const UnitGroupVector &unitsInComba
             DPF += unitGroup->numUnits * (*unitTypeDPF)[typeId][enemyType];
         }
     }
-    return ((DPF == 0) ? DBL_MAX : (double)enemyHP / DPF);
+    return ((DPF == 0) ? DBL_MAX : enemyHP / DPF);
 }
 
 // © me & Alberto Uriarte
@@ -157,27 +157,61 @@ CombatSimDecreased::combatStats_t CombatSimDecreased::getCombatStats(const UnitG
 void CombatSimDecreased::getCombatLength(const combatStats_t& friendStats, const combatStats_t& enemyStats)
 {
     // groups that can attack ground and air help to kill the group that it takes more time to kill
-    double timeToKillEnemyAir    = (enemyStats.airHP > 0) ? (friendStats.airDPF == 0) ? INT_MAX : enemyStats.airHP / friendStats.airDPF : 0;
-    double timeToKillEnemyGround = (enemyStats.groundHP > 0) ? (friendStats.groundDPF == 0) ? INT_MAX : enemyStats.groundHP / friendStats.groundDPF : 0;
+    double timeToKillEnemyAir = 0;
+    if (enemyStats.airHP > 0) {
+        if (friendStats.airDPF == 0) timeToKillEnemyAir = INT_MAX;
+        else timeToKillEnemyAir = enemyStats.airHP / friendStats.airDPF;
+    }
+    double timeToKillEnemyGround = 0;
+    if (enemyStats.groundHP > 0) {
+        if (friendStats.groundDPF == 0) timeToKillEnemyGround = INT_MAX;
+        else timeToKillEnemyGround = enemyStats.groundHP / friendStats.groundDPF;
+    }
     if (friendStats.bothAirDPF > 0) {
         if (timeToKillEnemyAir > timeToKillEnemyGround) {
-            double combinetDPF = friendStats.airDPF + friendStats.bothAirDPF;
-            timeToKillEnemyAir = (enemyStats.airHP > 0) ? (combinetDPF == 0) ? INT_MAX : enemyStats.airHP / combinetDPF : 0;
+            double combinedDPF = friendStats.airDPF + friendStats.bothAirDPF;
+            if (enemyStats.airHP > 0) {
+                if (combinedDPF == 0) timeToKillEnemyAir = INT_MAX;
+                else timeToKillEnemyAir = enemyStats.airHP / combinedDPF;
+            }
+            else timeToKillEnemyAir = 0;
         } else {
-            double combinetDPF    = friendStats.groundDPF + friendStats.bothGroundDPF;
-            timeToKillEnemyGround = (enemyStats.groundHP > 0) ? (combinetDPF == 0) ? INT_MAX : enemyStats.groundHP / combinetDPF : 0;
+            double combinedDPF    = friendStats.groundDPF + friendStats.bothGroundDPF;
+            if (enemyStats.groundHP > 0) {
+                if (combinedDPF == 0) timeToKillEnemyGround = INT_MAX;
+                else timeToKillEnemyGround = enemyStats.groundHP / combinedDPF;
+            }
+            else timeToKillEnemyGround = 0;
         }
     }
 
-    double timeToKillFriendAir    = (friendStats.airHP > 0) ? (enemyStats.airDPF == 0) ? INT_MAX : friendStats.airHP / enemyStats.airDPF : 0;
-    double timeToKillFriendGround = (friendStats.groundHP > 0) ? (enemyStats.groundDPF == 0) ? INT_MAX : friendStats.groundHP / enemyStats.groundDPF : 0;
+    double timeToKillFriendAir;
+    if (friendStats.airHP > 0) {
+        if (enemyStats.airDPF == 0) timeToKillFriendAir = INT_MAX;
+        else timeToKillFriendAir = friendStats.airHP / enemyStats.airDPF;
+    }
+    else timeToKillFriendAir = 0;
+    double timeToKillFriendGround;
+    if (friendStats.groundHP > 0) {
+        if (enemyStats.groundDPF == 0) timeToKillFriendGround = INT_MAX;
+        else timeToKillFriendGround = friendStats.groundHP / enemyStats.groundDPF;
+    }
+    else timeToKillFriendGround = 0;
     if (enemyStats.bothAirDPF > 0) {
         if (timeToKillFriendAir > timeToKillEnemyGround) {
-            double combinetDPF  = enemyStats.airDPF + enemyStats.bothAirDPF;
-            timeToKillFriendAir = (friendStats.airHP > 0) ? (combinetDPF == 0) ? INT_MAX : friendStats.airHP / combinetDPF : 0;
+            double combinedDPF  = enemyStats.airDPF + enemyStats.bothAirDPF;
+            if (friendStats.airHP > 0) {
+                if (combinedDPF == 0) timeToKillFriendAir = INT_MAX;
+                else timeToKillFriendAir = friendStats.airHP / combinedDPF ;
+            }
+            else timeToKillFriendAir = 0;
         } else {
-            double combinetDPF     = enemyStats.groundDPF + enemyStats.bothGroundDPF;
-            timeToKillFriendGround = (friendStats.groundHP > 0) ? (combinetDPF == 0) ? INT_MAX : friendStats.groundHP / combinetDPF : 0;
+            double combinedDPF     = enemyStats.groundDPF + enemyStats.bothGroundDPF;
+            if (friendStats.groundHP > 0) {
+                if (combinedDPF == 0) timeToKillFriendGround = INT_MAX;
+                else timeToKillFriendGround = friendStats.groundHP / combinedDPF ;
+            }
+            else timeToKillFriendGround = 0;
         }
     }
 
@@ -194,36 +228,72 @@ void CombatSimDecreased::getCombatLength(const combatStats_t& friendStats, const
 void CombatSimDecreased::getExtraCombatLength(const combatStats_t& friendStats, const combatStats_t& enemyStats)
 {
     // groups that can attack ground and air help to kill the group that it takes more time to kill
-    double timeToKillEnemyAir = (enemyStats.airHPextra > 0) ? (friendStats.airDPF == 0) ? INT_MAX : enemyStats.airHPextra / friendStats.airDPF : 0;
-    double timeToKillEnemyGround = (enemyStats.groundHPextra > 0) ? (friendStats.groundDPF == 0) ? INT_MAX : enemyStats.groundHPextra / friendStats.groundDPF : 0;
+    double timeToKillEnemyAir;
+    if (enemyStats.airHPextra > 0) {
+        if (friendStats.airDPF == 0) timeToKillEnemyAir = INT_MAX;
+        else timeToKillEnemyAir = enemyStats.airHPextra / friendStats.airDPF;
+    }
+    else timeToKillEnemyAir = 0;
+    double timeToKillEnemyGround;
+    if (enemyStats.groundHPextra > 0) {
+        if (friendStats.groundDPF == 0) timeToKillEnemyGround = INT_MAX;
+        else timeToKillEnemyGround = enemyStats.groundHPextra / friendStats.groundDPF;
+    }
+    else timeToKillEnemyGround = 0;
     if (friendStats.bothAirDPF > 0) {
         if (timeToKillEnemyAir > timeToKillEnemyGround) {
-            double combinetDPF = friendStats.airDPF + friendStats.bothAirDPF;
-            timeToKillEnemyAir = (enemyStats.airHPextra > 0) ? (combinetDPF == 0) ? INT_MAX : enemyStats.airHPextra / combinetDPF : 0;
+            double combinedDPF = friendStats.airDPF + friendStats.bothAirDPF;
+            if (enemyStats.airHPextra > 0) {
+                if (combinedDPF == 0) timeToKillEnemyAir = INT_MAX;
+                else timeToKillEnemyAir = enemyStats.airHPextra / combinedDPF ;
+            }
+            else timeToKillEnemyAir = 0;
         } else {
-            double combinetDPF    = friendStats.groundDPF + friendStats.bothGroundDPF;
-            timeToKillEnemyGround = (enemyStats.groundHPextra > 0) ? (combinetDPF == 0) ? INT_MAX : enemyStats.groundHPextra / combinetDPF : 0;
+            double combinedDPF    = friendStats.groundDPF + friendStats.bothGroundDPF;
+            if (enemyStats.groundHPextra > 0) {
+                if (combinedDPF == 0) timeToKillEnemyGround = INT_MAX;
+                else timeToKillEnemyGround = enemyStats.groundHPextra / combinedDPF ;
+            }
+            else timeToKillEnemyGround = 0;
         }
     }
 
-    double timeToKillFriendAir    = (friendStats.airHPextra > 0) ? (enemyStats.airDPF == 0) ? INT_MAX : friendStats.airHPextra / enemyStats.airDPF : 0;
-    double timeToKillFriendGround = (friendStats.groundHPextra > 0) ? (enemyStats.groundDPF == 0) ? INT_MAX : friendStats.groundHPextra / enemyStats.groundDPF : 0;
+    double timeToKillFriendAir;
+    if (friendStats.airHPextra > 0) {
+        if (enemyStats.airDPF == 0) timeToKillFriendAir = INT_MAX;
+        else timeToKillFriendAir = friendStats.airHPextra / enemyStats.airDPF;
+    }
+    else timeToKillFriendAir = 0;
+    double timeToKillFriendGround;
+    if (friendStats.groundHPextra > 0) {
+        if (enemyStats.groundDPF == 0) timeToKillFriendGround = INT_MAX;
+        else timeToKillFriendGround = friendStats.groundHPextra / enemyStats.groundDPF;
+    }
+    else timeToKillFriendGround = 0;
     if (enemyStats.bothAirDPF > 0) {
         if (timeToKillFriendAir > timeToKillEnemyGround) {
-            double combinetDPF  = enemyStats.airDPF + enemyStats.bothAirDPF;
-            timeToKillFriendAir = (friendStats.airHPextra > 0) ? (combinetDPF == 0) ? INT_MAX : friendStats.airHPextra / combinetDPF : 0;
+            double combinedDPF  = enemyStats.airDPF + enemyStats.bothAirDPF;
+            if (friendStats.airHPextra > 0) {
+                if (combinedDPF == 0) timeToKillFriendAir = INT_MAX;
+                else timeToKillFriendAir = friendStats.airHPextra / combinedDPF ;
+            }
+            else timeToKillFriendAir = 0;
         } else {
-            double combinetDPF     = enemyStats.groundDPF + enemyStats.bothGroundDPF;
-            timeToKillFriendGround = (friendStats.groundHPextra > 0) ? (combinetDPF == 0) ? INT_MAX : friendStats.groundHPextra / combinetDPF : 0;
+            double combinedDPF     = enemyStats.groundDPF + enemyStats.bothGroundDPF;
+            if (friendStats.groundHPextra > 0) {
+                if (combinedDPF == 0) timeToKillFriendGround = INT_MAX;
+                else timeToKillFriendGround = friendStats.groundHPextra / combinedDPF ;
+            }
+            else timeToKillFriendGround = 0;
         }
     }
 
-    if (timeToKillEnemyAir == INT_MAX && timeToKillEnemyGround > 0) extraTimeToKillEnemy = (int)timeToKillEnemyGround;
-    else if (timeToKillEnemyGround == INT_MAX && timeToKillEnemyAir > 0) extraTimeToKillEnemy = (int)timeToKillEnemyAir;
+    if (timeToKillEnemyAir == INT_MAX && timeToKillEnemyGround > 0) extraTimeToKillEnemy = timeToKillEnemyGround;
+    else if (timeToKillEnemyGround == INT_MAX && timeToKillEnemyAir > 0) extraTimeToKillEnemy = timeToKillEnemyAir;
     else extraTimeToKillEnemy = std::max(timeToKillEnemyAir, timeToKillEnemyGround);
 
-    if (timeToKillFriendAir == INT_MAX && timeToKillFriendGround > 0) extraTimeToKillFriend = (int)timeToKillFriendGround;
-    else if (timeToKillFriendGround == INT_MAX && timeToKillFriendAir > 0) extraTimeToKillFriend = (int)timeToKillFriendAir;
+    if (timeToKillFriendAir == INT_MAX && timeToKillFriendGround > 0) extraTimeToKillFriend = timeToKillFriendGround;
+    else if (timeToKillFriendGround == INT_MAX && timeToKillFriendAir > 0) extraTimeToKillFriend = timeToKillFriendAir;
     else extraTimeToKillFriend = std::max(timeToKillFriendAir, timeToKillFriendGround);
 }
 

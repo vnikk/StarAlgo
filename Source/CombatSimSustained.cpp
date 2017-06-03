@@ -46,12 +46,12 @@ void CombatSimSustained::getCombatLength(const combatStats_t& friendStats, const
     double timeToKillEnemyGround = (enemyStats.groundHP > 0) ? (friendStats.groundDPF == 0) ? INT_MAX : enemyStats.groundHP / friendStats.groundDPF : 0;
     if (friendStats.bothAirDPF > 0) {
         if (timeToKillEnemyAir > timeToKillEnemyGround) {
-            double combinetDPF = friendStats.airDPF + friendStats.bothAirDPF;
-            timeToKillEnemyAir = (enemyStats.airHP > 0) ? (combinetDPF == 0) ? INT_MAX : enemyStats.airHP / combinetDPF : 0;
+            double combinedDPF = friendStats.airDPF + friendStats.bothAirDPF;
+            timeToKillEnemyAir = (enemyStats.airHP > 0) ? (combinedDPF == 0) ? INT_MAX : enemyStats.airHP / combinedDPF : 0;
         }
         else {
-            double combinetDPF = friendStats.groundDPF + friendStats.bothGroundDPF;
-            timeToKillEnemyGround = (enemyStats.groundHP > 0) ? (combinetDPF == 0) ? INT_MAX : enemyStats.groundHP / combinetDPF : 0;
+            double combinedDPF = friendStats.groundDPF + friendStats.bothGroundDPF;
+            timeToKillEnemyGround = (enemyStats.groundHP > 0) ? (combinedDPF == 0) ? INT_MAX : enemyStats.groundHP / combinedDPF : 0;
         }
     }
 
@@ -59,12 +59,12 @@ void CombatSimSustained::getCombatLength(const combatStats_t& friendStats, const
     double timeToKillFriendGround = (friendStats.groundHP > 0) ? (enemyStats.groundDPF == 0) ? INT_MAX : friendStats.groundHP / enemyStats.groundDPF : 0;
     if (enemyStats.bothAirDPF > 0) {
         if (timeToKillFriendAir > timeToKillEnemyGround) {
-            double combinetDPF  = enemyStats.airDPF + enemyStats.bothAirDPF;
-            timeToKillFriendAir = (friendStats.airHP > 0) ? (combinetDPF == 0) ? INT_MAX : friendStats.airHP / combinetDPF : 0;
+            double combinedDPF  = enemyStats.airDPF + enemyStats.bothAirDPF;
+            timeToKillFriendAir = (friendStats.airHP > 0) ? (combinedDPF == 0) ? INT_MAX : friendStats.airHP / combinedDPF : 0;
         }
         else {
-            double combinetDPF     = enemyStats.groundDPF + enemyStats.bothGroundDPF;
-            timeToKillFriendGround = (friendStats.groundHP > 0) ? (combinetDPF == 0) ? INT_MAX : friendStats.groundHP / combinetDPF : 0;
+            double combinedDPF     = enemyStats.groundDPF + enemyStats.bothGroundDPF;
+            timeToKillFriendGround = (friendStats.groundHP > 0) ? (combinedDPF == 0) ? INT_MAX : friendStats.groundHP / combinedDPF : 0;
         }
     }
     if (timeToKillEnemyAir == INT_MAX && timeToKillEnemyGround > 0) { timeToKillEnemy = timeToKillEnemyGround; }
@@ -84,22 +84,22 @@ void CombatSimSustained::getExtraCombatLength(const combatStats_t& friendStats, 
     double timeToKillEnemyGround = (enemyStats.groundHPextra > 0) ? (friendStats.groundDPF == 0) ? INT_MAX : enemyStats.groundHPextra / friendStats.groundDPF : 0;
     if (friendStats.bothAirDPF > 0) {
         if (timeToKillEnemyAir > timeToKillEnemyGround) {
-            double combinetDPF = friendStats.airDPF + friendStats.bothAirDPF;
-            timeToKillEnemyAir = (enemyStats.airHPextra > 0) ? (combinetDPF == 0) ? INT_MAX : enemyStats.airHPextra / combinetDPF : 0;
+            double combinedDPF = friendStats.airDPF + friendStats.bothAirDPF;
+            timeToKillEnemyAir = (enemyStats.airHPextra > 0) ? (combinedDPF == 0) ? INT_MAX : enemyStats.airHPextra / combinedDPF : 0;
         } else {
-            double combinetDPF    = friendStats.groundDPF + friendStats.bothGroundDPF;
-            timeToKillEnemyGround = (enemyStats.groundHPextra > 0) ? (combinetDPF == 0) ? INT_MAX : enemyStats.groundHPextra / combinetDPF : 0;
+            double combinedDPF    = friendStats.groundDPF + friendStats.bothGroundDPF;
+            timeToKillEnemyGround = (enemyStats.groundHPextra > 0) ? (combinedDPF == 0) ? INT_MAX : enemyStats.groundHPextra / combinedDPF : 0;
         }
     }
     double timeToKillFriendAir    = (friendStats.airHPextra > 0) ? (enemyStats.airDPF == 0) ? INT_MAX : friendStats.airHPextra / enemyStats.airDPF : 0;
     double timeToKillFriendGround = (friendStats.groundHPextra > 0) ? (enemyStats.groundDPF == 0) ? INT_MAX : friendStats.groundHPextra / enemyStats.groundDPF : 0;
     if (enemyStats.bothAirDPF > 0) {
         if (timeToKillFriendAir > timeToKillEnemyGround) {
-            double combinetDPF  = enemyStats.airDPF + enemyStats.bothAirDPF;
-            timeToKillFriendAir = (friendStats.airHPextra > 0) ? (combinetDPF == 0) ? INT_MAX : friendStats.airHPextra / combinetDPF : 0;
+            double combinedDPF  = enemyStats.airDPF + enemyStats.bothAirDPF;
+            timeToKillFriendAir = (friendStats.airHPextra > 0) ? (combinedDPF == 0) ? INT_MAX : friendStats.airHPextra / combinedDPF : 0;
         } else {
-            double combinetDPF     = enemyStats.groundDPF + enemyStats.bothGroundDPF;
-            timeToKillFriendGround = (friendStats.groundHPextra > 0) ? (combinetDPF == 0) ? INT_MAX : friendStats.groundHPextra / combinetDPF : 0;
+            double combinedDPF     = enemyStats.groundDPF + enemyStats.bothGroundDPF;
+            timeToKillFriendGround = (friendStats.groundHPextra > 0) ? (combinedDPF == 0) ? INT_MAX : friendStats.groundHPextra / combinedDPF : 0;
         }
     }
     if (timeToKillEnemyAir == INT_MAX && timeToKillEnemyGround > 0) { extraTimeToKillEnemy = timeToKillEnemyGround; }
