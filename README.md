@@ -1,1 +1,2 @@
-The project is not updated to the final version yet.
+# StarAlgo
+Monte Carlo Tree Search Considering Durations library
