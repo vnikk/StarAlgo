@@ -13,14 +13,15 @@ typedef std::function<bool(const unitGroup_t* a, const unitGroup_t* b)> comp_f;
 class CombatSimulator
 {
 public:
-    virtual CombatSimulator* clone() const = 0;  // Virtual constructor (copying)
     virtual ~CombatSimulator() {}
+
+    virtual CombatSimulator* clone() const = 0;  // Virtual constructor (copying)
 
     enum GroupDiversity { AIR, GROUND, BOTH };
     GroupDiversity getGroupDiversity(UnitGroupVector* groups);
 
-    comp_f _comparator1;
-    comp_f _comparator2;
+    comp_f comparator1;
+    comp_f comparator2;
 
     void sortGroups(UnitGroupVector* groups, comp_f comparator, UnitGroupVector* attackers);
 

@@ -28,8 +28,8 @@ public:
 
     GameState(CombatSimulator* combatSim, RegionManager* regman);
     GameState(const GameState &gameState);
-    ~GameState();
     const GameState& operator=(const GameState& gameState);
+    ~GameState();
 
     CombatSimulator* cs;
     RegionManager*   regman;
@@ -42,28 +42,30 @@ public:
 
     void cleanArmyData();
     void loadIniConfig();
+
     int getMilitaryGroupsSize() const;
-    int getAllGroupsSize() const;
+    int getAllGroupsSize()      const;
     int getFriendlyGroupsSize() const;
-    int getEnemyGroupsSize() const;
-    int getFriendlyUnitsSize() const;
-    int getEnemyUnitsSize() const;
+    int getEnemyGroupsSize()    const;
+    int getFriendlyUnitsSize()  const;
+    int getEnemyUnitsSize()     const;
+    int getAbstractOrderID(int orderId, int currentRegion, int targetRegion) const;
+    std::string getAbstractOrderName(BWAPI::Order order, int currentRegion, int targetRegion) const;
+    std::string getAbstractOrderName(int abstractId) const;
+
     void addAllEnemyUnits();
     void addSelfBuildings();
-    unsigned short addFriendlyUnit(BWAPI::Unit unit);
     void addGroup(int unitId, int numUnits, int regionId, int listID, float groupHP, int orderId, int targetRegion, int endFrame);
     void addUnit(int unitId, int regionId, int listID, int orderId, float unitHP);
+    void addSquadToGameState(const BWAPI::Unitset& squad);
+    unsigned short addFriendlyUnit(BWAPI::Unit unit);
     unsigned short addUnitToArmySide(unitGroup_t* unit, unitGroupVector& armySide);
-    void calculateExpectedEndFrameForAllGroups();
-    int getAbstractOrderID(int orderId, int currentRegion, int targetRegion);
-    std::string getAbstractOrderName(BWAPI::Order order, int currentRegion, int targetRegion);
-    std::string getAbstractOrderName(int abstractId) const;
-    std::string toString() const;
 
+    void calculateExpectedEndFrameForAllGroups();
     void execute(const playerActions_t &playerActions, bool player);
     bool canExecuteAnyAction(bool player) const;
     void moveForward(int forwardTime = 0);
-    int winner() const;
+    int  winner() const;
     bool gameover() const;
     bool hasOnlyBuildings(const unitGroupVector& armySide) const;
     GameState cloneIssue(const playerActions_t& playerActions, bool player) const;
@@ -71,8 +73,7 @@ public:
     inline void mergeGroup(unitGroupVector& armySide);
 
     void resetFriendlyActions();
-    BWAPI::Position getCenterRegionId(int regionId);
-    int getRegionDistance(int regId1, int regId2);
+    int getRegionDistance(int regId1, int regId2) const;
 
     void compareAllUnits(const GameState& gs, int &misplacedUnits, int &totalUnits);
     void compareFriendlyUnits(const GameState& gs, int &misplacedUnits, int &totalUnits);
@@ -81,12 +82,13 @@ public:
     float getJaccard2(const GameState& initialState, const GameState& finalState, bool useKillScore = false);
     float getPredictionAccuracy(const GameState& initialState, const GameState& finalState);
     int getUnitIntersection(const unitGroup_t* groupUnit1, const unitGroupVector &groupUnitList);
+    std::set<int> GameState::getArmiesRegionsIntersection();
+    int getNextPlayerToMove(int &nextPlayerInSimultaneousNode) const;
 
     void changeCombatSimulator(CombatSimulator* newCS);
-    int getNextPlayerToMove(int &nextPlayerInSimultaneousNode) const;
     void sanityCheck();
-    std::set<int> GameState::getArmiesRegionsIntersection();
-    void addSquadToGameState(const BWAPI::Unitset& squad);
+
+    std::string toString() const;
 
 private:
     std::vector<int> regionsToDelete;

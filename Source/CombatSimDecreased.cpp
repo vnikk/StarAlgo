@@ -6,8 +6,8 @@ CombatSimDecreased::CombatSimDecreased(std::vector<std::vector<double> >* unitTy
 : unitTypeDPF(unitTypeDPF)
 {
     this->maxDPF = maxDPF;
-    _comparator1 = comparator1;
-    _comparator2 = comparator2;
+    comparator1 = comparator1;
+    comparator2 = comparator2;
 }
 
 // © me & Alberto Uriarte
@@ -17,8 +17,8 @@ void CombatSimDecreased::simulateCombat(GameState::army_t* armyInCombat, GameSta
     if (!canSimulate(armyInCombat, army)) { return; }
 
     // this will define the order to kill units from the set
-    sortGroups(&armyInCombat->friendly, _comparator1, &armyInCombat->enemy);
-    sortGroups(&armyInCombat->enemy, _comparator2, &armyInCombat->friendly);
+    sortGroups(&armyInCombat->friendly, comparator1, &armyInCombat->enemy);
+    sortGroups(&armyInCombat->enemy, comparator2, &armyInCombat->friendly);
 
     UnitGroupVector::iterator friendToKill = armyInCombat->friendly.begin();
     float friendHP = (*friendToKill)->HP;

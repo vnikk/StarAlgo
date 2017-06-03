@@ -15,14 +15,21 @@ class MCTSCD
 {
 public:
     MCTSCD(int maxDepth, int maxSimulations, int maxSimulationTime, EvaluationFunction* ef, RegionManager* regman);
-    playerActions_t start(const GameState& gs);
 
     RegionManager* regman;
     std::map<unsigned short, BWAPI::Unitset> idToSquad;
-    unsigned addSquadToGameState(GameState& gs, const BWAPI::Unitset& squad);
-private:
 
-    int maxDepth;
+    playerActions_t start(const GameState& gs);
+
+    unsigned addSquadToGameState(GameState& gs, const BWAPI::Unitset& squad);
+
+private:
+    int                 maxDepth;
+    int                 maxMissplacedUnits;
+    int                 maxSimulations;
+    int                 maxSimulationTime;
+    EvaluationFunction* evalFun;
+    GameState*          rootGameState;
 #ifdef DEPTH_STATS
     int _maxDepthReached;
     int _maxDepthRolloutReached;
@@ -31,11 +38,6 @@ private:
     Statistic _branching;
     Statistic _branchingRollout;
 #endif
-    int maxMissplacedUnits;
-    int maxSimulations;
-    int maxSimulationTime;
-    EvaluationFunction* evalFun;
-    GameState* rootGameState;
 
     playerActions_t startSearch(int cutOffTime);
     void simulate(GameState* gs, int time, int nextSimultaneous);

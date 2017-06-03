@@ -2,8 +2,6 @@
 
 #include "CombatInfo.h"
 
-// TODO spell casters have special DPS!!!!
-
 class UnitInfoStatic
 {
 public:

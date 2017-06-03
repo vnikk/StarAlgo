@@ -8,12 +8,11 @@
 // © me & Alberto Uriarte
 MCTSCD::MCTSCD(int maxDepth, int maxSimulations, int maxSimulationTime, EvaluationFunction* ef, RegionManager* regman)
 : maxDepth(maxDepth), evalFun(ef), maxSimulations(maxSimulations), maxSimulationTime(maxSimulationTime), regman(regman),
+  maxMissplacedUnits(0), rootGameState(nullptr)
 #ifdef DEPTH_STATS
-    _maxDepthReached(0),
-    _maxDepthRolloutReached(0),
+    , _maxDepthReached(0)
+    , _maxDepthRolloutReached(0)
 #endif
-    maxMissplacedUnits(0),
-    rootGameState(nullptr)
 {}
 
 // © me & Alberto Uriarte

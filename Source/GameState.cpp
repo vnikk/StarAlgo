@@ -336,13 +336,13 @@ int GameState::getMoveTime(int unitTypeId, int regionId, int targetRegionId)
     return timeToMove;
 }
 
-int GameState::getRegionDistance(int regId1, int regId2)
+int GameState::getRegionDistance(int regId1, int regId2) const
 {
     return regman->distanceBetweenRegions[regId1][regId2];
 }
 
 // © Alberto Uriarte
-int GameState::getAbstractOrderID(int orderId, int currentRegion, int targetRegion)
+int GameState::getAbstractOrderID(int orderId, int currentRegion, int targetRegion) const
 {
     if (orderId == BWAPI::Orders::MoveToMinerals ||
         orderId == BWAPI::Orders::WaitForMinerals ||
@@ -378,7 +378,7 @@ int GameState::getAbstractOrderID(int orderId, int currentRegion, int targetRegi
 }
 
 // © Alberto Uriarte
-std::string GameState::getAbstractOrderName(BWAPI::Order order, int currentRegion, int targetRegion)
+std::string GameState::getAbstractOrderName(BWAPI::Order order, int currentRegion, int targetRegion) const
 {
     int abstractId = getAbstractOrderID(order.getID(), currentRegion, targetRegion);
     return abstractOrder::name[abstractId];

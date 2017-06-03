@@ -7,8 +7,8 @@ CombatSimSustained::CombatSimSustained(std::vector<DPF_t>* maxDPF, comp_f compar
     this->maxDPF = maxDPF;
     timeToKillEnemy  = 0;
     timeToKillFriend = 0;
-    _comparator1 = comparator1;
-    _comparator2 = comparator2;
+    comparator1 = comparator1;
+    comparator2 = comparator2;
 }
 
 // © me & Alberto Uriarte
@@ -132,8 +132,8 @@ void CombatSimSustained::simulateCombat(GameState::army_t* armyInCombat, GameSta
     removeHarmlessIndestructibleUnits(armyInCombat);
     if (!canSimulate(armyInCombat, army)) { return; }
 
-    sortGroups(&armyInCombat->friendly, _comparator1, &armyInCombat->enemy);
-    sortGroups(&armyInCombat->enemy, _comparator2, &armyInCombat->friendly);
+    sortGroups(&armyInCombat->friendly, comparator1, &armyInCombat->enemy);
+    sortGroups(&armyInCombat->enemy, comparator2, &armyInCombat->friendly);
 
     combatStats_t friendStats = getCombatStats(armyInCombat->friendly);
     combatStats_t enemyStats = getCombatStats(armyInCombat->enemy);

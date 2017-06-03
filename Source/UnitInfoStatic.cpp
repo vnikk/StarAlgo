@@ -23,10 +23,10 @@ UnitInfoStatic::UnitInfoStatic()
             if (!enemyType.isFlyer() && groundWeapon.damageAmount() > 0) {
                 DPFval = static_cast<double>(groundWeapon.damageAmount() * groundWeapon.damageFactor() * unitType.maxGroundHits());
                 if (groundWeapon.damageType() == BWAPI::DamageTypes::Concussive) {
-                    if (enemyType.size() == BWAPI::UnitSizeTypes::Large) DPFval *= 0.25;
+                    if      (enemyType.size() == BWAPI::UnitSizeTypes::Large)  DPFval *= 0.25;
                     else if (enemyType.size() == BWAPI::UnitSizeTypes::Medium) DPFval *= 0.5;
                 } else if (groundWeapon.damageType() == BWAPI::DamageTypes::Explosive) {
-                    if (enemyType.size() == BWAPI::UnitSizeTypes::Small) DPFval *= 0.5;
+                    if      (enemyType.size() == BWAPI::UnitSizeTypes::Small)  DPFval *= 0.5;
                     else if (enemyType.size() == BWAPI::UnitSizeTypes::Medium) DPFval *= 0.75;
                 }
 
@@ -38,14 +38,14 @@ UnitInfoStatic::UnitInfoStatic()
             } else if (enemyType.isFlyer() && airWeapon.damageAmount() > 0) {
                 DPFval = static_cast<double>(airWeapon.damageAmount() * airWeapon.damageFactor() * unitType.maxAirHits());
                 if (airWeapon.damageType() == BWAPI::DamageTypes::Concussive) {
-                    if (enemyType.size() == BWAPI::UnitSizeTypes::Large) DPFval *= 0.25;
+                    if      (enemyType.size() == BWAPI::UnitSizeTypes::Large)  DPFval *= 0.25;
                     else if (enemyType.size() == BWAPI::UnitSizeTypes::Medium) DPFval *= 0.5;
                 } else if (airWeapon.damageType() == BWAPI::DamageTypes::Explosive) {
-                    if (enemyType.size() == BWAPI::UnitSizeTypes::Small) DPFval *= 0.25;
+                    if      (enemyType.size() == BWAPI::UnitSizeTypes::Small)  DPFval *= 0.25;
                     else if (enemyType.size() == BWAPI::UnitSizeTypes::Medium) DPFval *= 0.5;
                 }
 
-                if (i == BWAPI::UnitTypes::Terran_Bunker)		 DPFval = (DPFval * 4.0) / airWeapon.damageCooldown(); // consider Bunkers like 4 Marines
+                if      (i == BWAPI::UnitTypes::Terran_Bunker)   DPFval = (DPFval * 4.0) / airWeapon.damageCooldown(); // consider Bunkers like 4 Marines
                 else if (i == BWAPI::UnitTypes::Protoss_Carrier) DPFval = (DPFval * 8.0) / 30.0; // can launch up to 8 interceptors each 30 frames
                 else											 DPFval = DPFval / airWeapon.damageCooldown();
             }

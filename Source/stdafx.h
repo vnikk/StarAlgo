@@ -30,13 +30,9 @@ class UnitInfoStatic;
 extern UnitInfoStatic* unitStatic;
 
 bool isAggressiveSpellcaster(BWAPI::UnitType unitType);
-
 bool isPassiveBuilding(const unitGroup_t* group);
-
 bool canAttackAirUnits(BWAPI::UnitType unitType);
-
 bool canAttackGroundUnits(BWAPI::UnitType unitType);
-
 bool canAttackType(BWAPI::UnitType unitTypeAttacking, BWAPI::UnitType unitTypeTarget);
 
 std::string LoadConfigString(const char *pszKey, const char *pszItem, const char *pszDefault);

@@ -10,16 +10,17 @@ class GameState;
 class GameNode {
 public:
     playerActions_t actions;
-    double totalEvaluation;
-    double totalVisits;
-    GameNode* parent;
-    std::vector<GameNode*> children;
-    GameState gameState;
-    double depth;
-    int playerTurn; // 1 : max, 0 : min, -1: Game-over
+    double          totalEvaluation;
+    double          totalVisits;
+    GameState       gameState;
+    int             playerTurn; // 1 : max, 0 : min, -1: Game-over
     ActionGenerator moveGenerator;
-    int nextPlayerInSimultaneousNode;
-    double actionsProbability;
+    int             nextPlayerInSimultaneousNode;
+    double          actionsProbability;
+
+    double                 depth;
+    GameNode*              parent;
+    std::vector<GameNode*> children;
 
     GameNode(GameNode* parent0, GameState gameState0)
     : parent(parent0), gameState(gameState0), totalEvaluation(0), totalVisits(0), depth(0),

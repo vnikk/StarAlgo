@@ -17,6 +17,7 @@ class CombatSimLanchester : public CombatSimulator
 public:
     CombatSimLanchester(std::vector<DPF_t>* maxDPF, comp_f comparator1 = nullptr, comp_f comparator2 = nullptr);
     virtual ~CombatSimLanchester() {}
+
     CombatSimLanchester * clone() const { return new CombatSimLanchester(*this); } // Virtual constructor (copying)
 
     int getCombatLength(GameState::army_t* army);

@@ -6,8 +6,8 @@ CombatSimLanchester::CombatSimLanchester(std::vector<DPF_t>* maxDPF, comp_f comp
 : winner(0), easyCombat(false)
 {
     this->maxDPF = maxDPF;
-    _comparator1 = comparator1;
-    _comparator2 = comparator2;
+    comparator1 = comparator1;
+    comparator2 = comparator2;
 }
 
 // © me & Alberto Uriarte
@@ -156,10 +156,9 @@ int CombatSimLanchester::getCombatLength(GameState::army_t* army)
             combatLength = lanchester.x0 / lanchester.a; // used as a lower bound time
         }
 
-        if (std::isnan(combatLength)) {
+        if (std::isnan(combatLength)) { // Trying to simulate a combat between armies that cannot kill each other
             winner = 0;
             combatLength = 0;
-// 			DEBUG("Trying to simulate a combat between armies that cannot kill each other");
         } else {
             combatLength = static_cast<int>(std::ceil(combatLength));
         }
@@ -187,8 +186,8 @@ void CombatSimLanchester::simulateCombat(GameState::army_t* armyInCombat, GameSt
     if (!canSimulate(armyInCombat, army)) return;
 
     // this will define the order to kill units from the set
-    sortGroups(&armyInCombat->friendly, _comparator1, &armyInCombat->enemy);
-    sortGroups(&armyInCombat->enemy, _comparator1, &armyInCombat->friendly);
+    sortGroups(&armyInCombat->friendly, comparator1, &armyInCombat->enemy);
+    sortGroups(&armyInCombat->enemy, comparator1, &armyInCombat->friendly);
 
     int combatLength = getCombatLength(armyInCombat); // it also precomputes all Lanchester parameters
 
