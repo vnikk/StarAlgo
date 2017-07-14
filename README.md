@@ -2,6 +2,7 @@
 Monte Carlo Tree Search Considering Durations library
 
 General overview of how to setup the library:
+
 0. Add library file to project.
 1. Include headers.
 2. Make several bot squads (the more the better).
