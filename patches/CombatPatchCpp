@@ -1,0 +1,326 @@
+diff --git a/C:/Users/wat/g/ualbertabot-master/UAlbertaBot/Source/CombatCommander.cpp b/CombatCommander.cpp
+index d70610e..9e43076 100644
+--- a/C:/Users/wat/g/ualbertabot-master/UAlbertaBot/Source/CombatCommander.cpp
++++ b/CombatCommander.cpp
+@@ -1,6 +1,18 @@
+ #include "CombatCommander.h"
+ #include "UnitUtil.h"
+
++// Staralgo
++#include "Squad.h"
++#include "../../StarAlgo/Source/UnitInfoStatic.h"
++#include "../../StarAlgo/Source/CombatSimDecreased.h"
++#include "../../StarAlgo/Source/MCTSCD.h"
++#include "../../StarAlgo/Source/StarAlgoExtra.h"
++#include "../../StarAlgo/Source/GameState.h"
++#include "../../StarAlgo/Source/EvaluationFunction.h"
++#include "../../StarAlgo/Source/Negamax.h"
++#include "../../StarAlgo/Source/RegionManager.h"
++
++
+ using namespace UAlbertaBot;
+
+ const size_t IdlePriority = 0;
+@@ -15,14 +27,36 @@ CombatCommander::CombatCommander()
+
+ }
+
++// Staralgo
++static CombatSimulator* combatSim; // TODO shared_ptr?
++static MCTSCD* searchAlg; // TODO better name
++static UnitInfoStatic* unitStatic;
++static RegionManager* regionManager;
++
+ void CombatCommander::initializeSquads()
+ {
+     SquadOrder idleOrder(SquadOrderTypes::Idle, BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation()), 100, "Chill Out");
+ 	_squadData.addSquad("Idle", Squad("Idle", idleOrder, IdlePriority));
+
+     // the main attack squad that will pressure the enemy's closest base location
+-    SquadOrder mainAttackOrder(SquadOrderTypes::Attack, getMainAttackLocation(), 800, "Attack Enemy Base");
+-	_squadData.addSquad("MainAttack", Squad("MainAttack", mainAttackOrder, AttackPriority));
++    SquadOrder one(SquadOrderTypes::Attack, getMainAttackLocation(), 800, "MC");
++	_squadData.addSquad("One", Squad("One", one, AttackPriority));
++
++    // the main attack squad that will pressure the enemy's closest base location
++    SquadOrder two(SquadOrderTypes::Attack, getMainAttackLocation(), 800, "MC");
++	_squadData.addSquad("Two", Squad("Two", two, AttackPriority));
++
++    // the main attack squad that will pressure the enemy's closest base location
++    SquadOrder three(SquadOrderTypes::Attack, getMainAttackLocation(), 800, "MC");
++	_squadData.addSquad("Three", Squad("Three", three, AttackPriority));
++
++    // the main attack squad that will pressure the enemy's closest base location
++    SquadOrder four(SquadOrderTypes::Attack, getMainAttackLocation(), 800, "MC");
++	_squadData.addSquad("Four", Squad("Four", four, AttackPriority));
++
++    // the main attack squad that will pressure the enemy's closest base location
++    SquadOrder five(SquadOrderTypes::Attack, getMainAttackLocation(), 800, "MC");
++	_squadData.addSquad("Five", Squad("Five", five, AttackPriority));
+
+     BWAPI::Position ourBasePosition = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
+
+@@ -38,6 +72,20 @@ void CombatCommander::initializeSquads()
+     }
+
+     _initialized = true;
++
++    // Staralgo
++    unitStatic = new UnitInfoStatic;
++    // Compute max DPS and HP of each unit
++    // set combat simulator
++    // 	CombatSimulator* combatSim = new CombatSimLanchester(&unitStatic->DPF);
++    // 	CombatSimulator* combatSim = new CombatSimSustained(&unitStatic->DPF);
++    combatSim = new CombatSimDecreased(&unitStatic->typeDPF, &unitStatic->DPF);
++    EvaluationFunction ef;
++    int depth = 10;//LoadConfigInt("MCTSCD", "depth", 1);
++    int iterations = 1000;//LoadConfigInt("MCTSCD", "iterations");
++    int maxSimTime = 2880;//LoadConfigInt("MCTSCD", "max_simulation_time");
++    regionManager = new RegionManager;
++    searchAlg = new MCTSCD(depth, iterations, maxSimTime, &ef, regionManager);
+ }
+
+ bool CombatCommander::isSquadUpdateFrame()
+@@ -66,12 +114,108 @@ void CombatCommander::update(const BWAPI::Unitset & combatUnits)
+         updateDropSquads();
+         updateScoutDefenseSquad();
+ 		updateDefenseSquads();
+-		updateAttackSquads();
++        int frames = BWAPI::Broodwar->getFrameCount();
++        if (frames % 400 == 0 && frames > 5000)
++            myUpdateSquads();
++            //updateAttackSquads();
+ 	}
+
+ 	_squadData.update();
+ }
+
++void assignIfCan(SquadData& sd, BWAPI::Unit unit, Squad & squad) {
++    if (sd.canAssignUnitToSquad(unit, squad)) {
++        sd.assignUnitToSquad(unit, squad);
++    }
++}
++
++void CombatCommander::myUpdateSquads() {
++    std::vector<Squad*> squads;
++    squads.push_back(&_squadData.getSquad("One"));
++    squads.push_back(&_squadData.getSquad("Two"));
++    squads.push_back(&_squadData.getSquad("Three"));
++    squads.push_back(&_squadData.getSquad("Four"));
++    squads.push_back(&_squadData.getSquad("Five"));
++
++    std::map<BWAPI::Region, std::vector<BWAPI::Unit>> unitRegions;
++    for (auto & unit : _combatUnits) {
++        unitRegions[unit->getRegion()].push_back(unit);
++    }
++
++    int i = 0;
++    for (auto it = unitRegions.begin(); it != unitRegions.end(); ++it, ++i) {
++        for (auto& unit : it->second) {
++            assignIfCan(_squadData, unit, *squads[i%5]);
++        }
++    }
++
++    GameState gs(combatSim, regionManager);
++    gs.addAllEnemyUnits();
++    //gs.addSelfBuildings();
++
++    //unsigned groupId = searchAlg->addSquadToGameState(gs, _combatUnits); // MB split?
++    std::vector<unsigned> groupIds;
++    for (int i = 0; i < 5; ++i) {
++        groupIds.push_back(searchAlg->addSquadToGameState(gs, squads[i]->getUnits()));
++    }
++
++    playerActions_t bestActions = searchAlg->start(gs);
++    BWAPI::Broodwar->drawTextScreen(200, 50, "\x08 MCTSCD");
++    BWAPI::Broodwar->drawTextScreen(200, 60, "\x08 bestActions.size(): %d", bestActions.size());
++    //BWAPI::Broodwar->drawTextScreen(200, 70, "\x08 groupIds: %d %d %d %d %d", groupId1, groupId2, groupId3, groupId4, groupId5);
++    for (int i = 0; i < bestActions.size(); ++i) // remove
++        BWAPI::Broodwar->drawTextScreen(200, 80 + i * 10, "\x08 bestActions: %d, %d, %d", bestActions[i].action.orderID, bestActions[i].action.targetRegion, bestActions[i].pos);
++
++    for (int i = 0; i < bestActions.size(); ++i) {
++        for (int y = 0; y < groupIds.size(); ++y) {
++            if (groupIds[y] == bestActions[i].pos) {
++                //our set
++                BWAPI::Unitset squadSet = searchAlg->_idToSquad[bestActions[i].pos];
++                auto& targetPosition = gs._regman->getCenterRegionId(bestActions[i].action.targetRegion);
++                squads[y]->setSquadOrder(SquadOrder(SquadOrderTypes::Attack, targetPosition, 800, "MCTSCD move"));
++            }
++        }
++    }
++
++
++    //for (int i = 0; (i < bestActions.size()) && (i < 4); ++i) { // NOT NECESSARY BEST
++    //    SquadOrder order(SquadOrderTypes::Attack, gs._regman->getCenterRegionId(bestActions[i].action.targetRegion), 800, "MC");
++    //    for (auto& unit : _combatUnits) {
++    //        BWAPI::Position pos = unit->getRegion()->getCenter();
++    //        BWAPI::Position pos2 = gs._regman->_regionFromID[gs._army.friendly[bestActions[i].pos]->regionId]->getCenter();
++    //        int id = unit->getType().getID();
++    //        int id2 = gs._army.friendly[bestActions[i].pos]->unitTypeId;
++    //        if (pos == pos2 && // TODO debug
++    //            id == id2) {
++    //            squads[i]->addUnit(unit);
++    //        }
++    //    }
++    //    squads[i]->setSquadOrder(order);
++    //}
++    //SquadOrder five;
++    //for (int i = 4; i < bestActions.size(); ++i) {
++    //    five = SquadOrder(SquadOrderTypes::Attack, gs._regman->getCenterRegionId(bestActions[i].action.targetRegion), 800, "MC");
++    //    for (auto& unit : _combatUnits) {
++    //        if (unit->getRegion()->getID() == gs._army.friendly[bestActions[i].pos]->regionId && // TODO debug
++    //            unit->getType() == gs._army.friendly[bestActions[i].pos]->unitTypeId) {
++    //            squads[4]->addUnit(unit); // rest to last
++    //        }
++    //    }
++    //}
++    //squads[4]->setSquadOrder(five);
++
++    //SquadOrder oneOrder(SquadOrderTypes::Attack, gs._regman->getCenterRegionId(bestActions[groupId1].action.targetRegion), 800, "MC");
++    //squads[0]->setSquadOrder(oneOrder);
++    //SquadOrder twoOrder(SquadOrderTypes::Attack, gs._regman->getCenterRegionId(bestActions[groupId2].action.targetRegion), 800, "MC");
++    //squads[1]->setSquadOrder(twoOrder);
++    //SquadOrder threeOrder(SquadOrderTypes::Attack, gs._regman->getCenterRegionId(bestActions[groupId3].action.targetRegion), 800, "MC");
++    //squads[2]->setSquadOrder(threeOrder);
++    //SquadOrder fourOrder(SquadOrderTypes::Attack, gs._regman->getCenterRegionId(bestActions[groupId4].action.targetRegion), 800, "MC");
++    //squads[3]->setSquadOrder(fourOrder);
++    //SquadOrder fiveOrder(SquadOrderTypes::Attack, gs._regman->getCenterRegionId(bestActions[groupId5].action.targetRegion), 800, "MC");
++    //squads[4]->setSquadOrder(fiveOrder);
++}
++
+ void CombatCommander::updateIdleSquad()
+ {
+     Squad & idleSquad = _squadData.getSquad("Idle");
+@@ -97,14 +241,35 @@ void CombatCommander::updateAttackSquads()
+         }
+
+         // get every unit of a lower priority and put it into the attack squad
+-        if (!unit->getType().isWorker() && (unit->getType() != BWAPI::UnitTypes::Zerg_Overlord) && _squadData.canAssignUnitToSquad(unit, mainAttackSquad))
++        if (!unit->getType().isWorker() && (unit->getType() != BWAPI::UnitTypes::Zerg_Overlord) && _squadData.canAssignUnitToSquad(unit, mainAttackSquad) &&
++            unit->getType() == BWAPI::UnitTypes::Zerg_Hydralisk)
+         {
+             _squadData.assignUnitToSquad(unit, mainAttackSquad);
+         }
+     }
+
+-    SquadOrder mainAttackOrder(SquadOrderTypes::Attack, getMainAttackLocation(), 800, "Attack Enemy Base");
++    SquadOrder mainAttackOrder(SquadOrderTypes::Attack, getMainAttackLocation(&mainAttackSquad), 800, "Attack Enemy Base");
+     mainAttackSquad.setSquadOrder(mainAttackOrder);
++
++    Squad & extraAttackSquad = _squadData.getSquad("ExtraAttack");
++
++    for (auto & unit : _combatUnits)
++    {
++        if (unit->getType() == BWAPI::UnitTypes::Zerg_Scourge && UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Hydralisk) < 30)
++        {
++            continue;
++        }
++
++        // get every unit of a lower priority and put it into the attack squad
++        if (!unit->getType().isWorker() && (unit->getType() != BWAPI::UnitTypes::Zerg_Overlord) && _squadData.canAssignUnitToSquad(unit, extraAttackSquad) &&
++            unit->getType() == BWAPI::UnitTypes::Zerg_Zergling)
++        {
++            _squadData.assignUnitToSquad(unit, extraAttackSquad);
++        }
++    }
++
++    SquadOrder extraAttackOrder(SquadOrderTypes::Attack, getMainAttackLocation(&extraAttackSquad), 800, "Assist");
++    extraAttackSquad.setSquadOrder(extraAttackOrder);
+ }
+
+ void CombatCommander::updateDropSquads()
+@@ -464,8 +629,9 @@ void CombatCommander::drawSquadInformation(int x, int y)
+ 	_squadData.drawSquadInformation(x, y);
+ }
+
+-BWAPI::Position CombatCommander::getMainAttackLocation()
++BWAPI::Position CombatCommander::getMainAttackLocation(Squad* squad/* = nullptr*/)
+ {
++    /*
+     BWTA::BaseLocation * enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+
+     // First choice: Attack an enemy region if we can see units inside it
+@@ -483,6 +649,7 @@ BWAPI::Position CombatCommander::getMainAttackLocation()
+             if (unit->getType() != BWAPI::UnitTypes::Zerg_Overlord)
+             {
+                 onlyOverlords = false;
++                break;
+             }
+         }
+
+@@ -505,21 +672,62 @@ BWAPI::Position CombatCommander::getMainAttackLocation()
+ 			return ui.lastPosition;
+ 		}
+     }
+-
+-    // Third choice: Attack visible enemy units that aren't overlords
+-    for (auto & unit : BWAPI::Broodwar->enemy()->getUnits())
+-	{
+-        if (unit->getType() == BWAPI::UnitTypes::Zerg_Overlord)
+-        {
+-            continue;
++*/
++    if (squad != nullptr /*&& BWAPI::Broodwar->getFrameCount() % 400 == 0*/) {
++        if (true) {
++            BWAPI::Broodwar->drawTextScreen(10, 60, "\x08 MCTSCD");
++            // Staralgo
++            //SquadOrder mainAttackOrder;
++            GameState gs(combatSim, regionManager);
++            gs.addAllEnemyUnits();
++            //gs.addSelfBuildings();
++            //for (auto& unit : mainAttackSquad.getUnits()) {
++            //    gs.addFriendlyUnit(unit);
++            //}
++            searchAlg->addSquadToGameState(gs, squad->getUnits());
++            playerActions_t bestActions = searchAlg->start(gs/*informationManager->gameState*/);
++            for (int i = 0; i < bestActions.size(); ++i) // remove
++                BWAPI::Broodwar->drawTextScreen(100, 60 + i * 10, "\x08 bestActions: %d, %d, %d", bestActions[i].action.orderID, bestActions[i].action.targetRegion, bestActions[i].pos);
++            BWAPI::Broodwar->drawTextScreen(10, 50, "\x08 bestActions.size(): %d", bestActions.size());
++            //std::map<SquadAgent*, BWAPI::Position> bestOrders;
++            if (bestActions.size())
++                return gs._regman->getCenterRegionId(bestActions.front().action.targetRegion);
++            //BWAPI::Position targetPosition;
++            //for (const auto& groupAction : bestActions) {
++            //    BWAPI::Unitset squadSet = searchAlg->_idToSquad[groupAction.pos];
++
++            //    for (auto& squad : squadSet) {
++            //        targetPosition = gs.getCenterRegionId(groupAction.action.targetRegion);
++            //        //bestOrders[squad] = targetPosition;
++            //        mainAttackOrder = SquadOrder(SquadOrderTypes::Attack, targetPosition, 800, "MCTSCD move");
++            //    //}
++            //}
++        }
++        else {
++            BWAPI::BroodwarPtr->sendText("Negamax");
++            //BWAPI::GameWrapper::sendText("Negamax");
++            //BWAPI::Broodwar->drawTextScreen(10, 50, "\x08 Negamax");
++            GameState gs(combatSim, regionManager);
++            playerActions_t bestActions = negamax(gs, 10); // MC 10
++            if (bestActions.size())
++                return gs._regman->getCenterRegionId(bestActions.front().action.targetRegion);
+         }
++    }
++    else {
++        // Third choice: Attack visible enemy units that aren't overlords
++        for (auto & unit : BWAPI::Broodwar->enemy()->getUnits())
++        {
++            if (unit->getType() == BWAPI::UnitTypes::Zerg_Overlord)
++            {
++                continue;
++            }
+
+-		if (UnitUtil::IsValidUnit(unit) && unit->isVisible())
+-		{
+-			return unit->getPosition();
+-		}
+-	}
+-
++            if (UnitUtil::IsValidUnit(unit) && unit->isVisible())
++            {
++                return unit->getPosition();
++            }
++        }
++    }
+     // Fourth choice: We can't see anything so explore the map attacking along the way
+     return MapGrid::Instance().getLeastExplored();
+ }

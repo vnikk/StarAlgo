@@ -1,0 +1,13 @@
+diff --git a/C:/Users/wat/g/ualbertabot-master/UAlbertaBot/Source/GameCommander.cpp b/GameCommander.cpp
+index 107220f..72b3f7d 100644
+--- a/C:/Users/wat/g/ualbertabot-master/UAlbertaBot/Source/GameCommander.cpp
++++ b/GameCommander.cpp
+@@ -167,7 +167,7 @@ void GameCommander::setCombatUnits()
+ {
+ 	for (auto & unit : _validUnits)
+ 	{
+-		if (!isAssigned(unit) && UnitUtil::IsCombatUnit(unit) || unit->getType().isWorker())		
++		if (!isAssigned(unit) && UnitUtil::IsCombatUnit(unit)/* || unit->getType().isWorker()*/)
+ 		{	
+ 			assignUnit(unit, _combatUnits);
+ 		}

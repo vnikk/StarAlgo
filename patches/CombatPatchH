@@ -1,0 +1,21 @@
+diff --git a/C:/Users/wat/g/ualbertabot-master/UAlbertaBot/Source/CombatCommander.h b/CombatCommander.h
+index 3f46afd..7c36d68 100644
+--- a/C:/Users/wat/g/ualbertabot-master/UAlbertaBot/Source/CombatCommander.h
++++ b/CombatCommander.h
+@@ -26,7 +26,7 @@ class CombatCommander
+     BWAPI::Unit     findClosestWorkerToTarget(BWAPI::Unitset & unitsToAssign, BWAPI::Unit target);
+ 
+ 	BWAPI::Position getDefendLocation();
+-    BWAPI::Position getMainAttackLocation();
++    BWAPI::Position getMainAttackLocation(Squad* squad = nullptr);
+ 
+     void            initializeSquads();
+     void            verifySquadUniqueMembership();
+@@ -41,6 +41,7 @@ class CombatCommander
+     int             numZerglingsInOurBase();
+     bool            beingBuildingRushed();
+ 
++    void myUpdateSquads();
+ public:
+ 
+ 	CombatCommander();

@@ -1,0 +1,109 @@
+diff --git a/C:/Users/wat/g/ualbertabot-master/UAlbertaBot/Source/UAlbertaBotModule.cpp b/UAlbertaBotModule.cpp
+index 10582b2..350e04e 100644
+--- a/C:/Users/wat/g/ualbertabot-master/UAlbertaBot/Source/UAlbertaBotModule.cpp
++++ b/UAlbertaBotModule.cpp
+@@ -32,8 +32,8 @@ void UAlbertaBotModule::onStart()
+     ParseUtils::ParseConfigFile(Config::ConfigFile::ConfigFileLocation);
+ 
+     // Set our BWAPI options here    
+-	BWAPI::Broodwar->setLocalSpeed(Config::BWAPIOptions::SetLocalSpeed);
+-	BWAPI::Broodwar->setFrameSkip(Config::BWAPIOptions::SetFrameSkip);
++    BWAPI::Broodwar->setLocalSpeed(Config::BWAPIOptions::SetLocalSpeed);
++    BWAPI::Broodwar->setFrameSkip(Config::BWAPIOptions::SetFrameSkip);
+     
+     if (Config::BWAPIOptions::EnableCompleteMapInformation)
+     {
+@@ -62,14 +62,23 @@ void UAlbertaBotModule::onStart()
+             StrategyManager::Instance().setLearnedStrategy();
+         }
+ 	}
++    BWAPI::BroodwarPtr->sendText("black sheep wall");
+ }
+ 
+ void UAlbertaBotModule::onEnd(bool isWinner) 
+ {
+-	if (Config::Modules::UsingGameCommander)
+-	{
+-		StrategyManager::Instance().onEnd(isWinner);
+-	}	
++    if (Config::Modules::UsingGameCommander)
++    {
++        StrategyManager::Instance().onEnd(isWinner);
++    }
++    Logger::LogAppendToFile(std::string("my_res"), "%d %d %d %d %d %d %d \n",
++        BWAPI::Broodwar->getFrameCount(),
++        BWAPI::Broodwar->self()->getUnitScore(),
++        BWAPI::Broodwar->self()->getKillScore(),
++        BWAPI::Broodwar->enemy()->getUnitScore(),
++        BWAPI::Broodwar->enemy()->getKillScore(),
++        BWAPI::Broodwar->self()->getUnits().size(),
++        isWinner);
+ }
+ 
+ void UAlbertaBotModule::onFrame()
+@@ -102,10 +111,10 @@ void UAlbertaBotModule::onFrame()
+         return;
+     }
+ 
+-	if (Config::Modules::UsingGameCommander) 
+-	{ 
+-		_gameCommander.update(); 
+-	}
++    if (Config::Modules::UsingGameCommander) 
++    { 
++        _gameCommander.update(); 
++    }
+ 
+     if (Config::Modules::UsingAutoObserver)
+     {
+@@ -115,40 +124,41 @@ void UAlbertaBotModule::onFrame()
+ 
+ void UAlbertaBotModule::onUnitDestroy(BWAPI::Unit unit)
+ {
+-	if (Config::Modules::UsingGameCommander) { _gameCommander.onUnitDestroy(unit); }
++    if (Config::Modules::UsingGameCommander) { _gameCommander.onUnitDestroy(unit); }
+ }
+ 
+ void UAlbertaBotModule::onUnitMorph(BWAPI::Unit unit)
+ {
+-	if (Config::Modules::UsingGameCommander) { _gameCommander.onUnitMorph(unit); }
++    if (Config::Modules::UsingGameCommander) { _gameCommander.onUnitMorph(unit); }
+ }
+ 
+ void UAlbertaBotModule::onSendText(std::string text) 
+ { 
+-	ParseUtils::ParseTextCommand(text);
++    ParseUtils::ParseTextCommand(text);
++    BWAPI::BroodwarPtr->sendText(text.c_str());
+ }
+ 
+ void UAlbertaBotModule::onUnitCreate(BWAPI::Unit unit)
+ { 
+-	if (Config::Modules::UsingGameCommander) { _gameCommander.onUnitCreate(unit); }
++    if (Config::Modules::UsingGameCommander) { _gameCommander.onUnitCreate(unit); }
+ }
+ 
+ void UAlbertaBotModule::onUnitComplete(BWAPI::Unit unit)
+ {
+-	if (Config::Modules::UsingGameCommander) { _gameCommander.onUnitComplete(unit); }
++    if (Config::Modules::UsingGameCommander) { _gameCommander.onUnitComplete(unit); }
+ }
+ 
+ void UAlbertaBotModule::onUnitShow(BWAPI::Unit unit)
+ { 
+-	if (Config::Modules::UsingGameCommander) { _gameCommander.onUnitShow(unit); }
++    if (Config::Modules::UsingGameCommander) { _gameCommander.onUnitShow(unit); }
+ }
+ 
+ void UAlbertaBotModule::onUnitHide(BWAPI::Unit unit)
+ { 
+-	if (Config::Modules::UsingGameCommander) { _gameCommander.onUnitHide(unit); }
++    if (Config::Modules::UsingGameCommander) { _gameCommander.onUnitHide(unit); }
+ }
+ 
+ void UAlbertaBotModule::onUnitRenegade(BWAPI::Unit unit)
+ { 
+-	if (Config::Modules::UsingGameCommander) { _gameCommander.onUnitRenegade(unit); }
++    if (Config::Modules::UsingGameCommander) { _gameCommander.onUnitRenegade(unit); }
+ }
+\ No newline at end of file
