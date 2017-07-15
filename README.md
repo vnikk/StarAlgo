@@ -13,3 +13,5 @@ General overview of how to setup the library:
 
 
 MCTSCD assigns units to distinct groups by their type and region, so if your squads share the same approach, the result will be more accurate for the squad (otherwise the prevailing group will be used).
+
+You can use the patches/\* files to integrate with UAlberta.
