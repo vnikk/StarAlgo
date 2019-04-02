@@ -1,5 +1,5 @@
 # StarAlgo
-Monte Carlo Tree Search Considering Durations library. It provides a useful algorithm for heuristics and control of your army squads. It was developed mainly to be integrated with (UAlbertaBot)[https://github.com/davechurchill/ualbertabot], but it is possible to plug to other architectures as well but with some additional effort.
+Monte Carlo Tree Search Considering Durations library. It provides a useful algorithm for heuristics and control of your army squads. It was developed mainly to be integrated with [UAlbertaBot](https://github.com/davechurchill/ualbertabot), but it is possible to plug to other architectures as well but with some additional effort.
 
 How to setup the library:
 
